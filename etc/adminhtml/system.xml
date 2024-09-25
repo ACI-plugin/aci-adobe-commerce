@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<config
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="payment" translate="label" type="text" sortOrder="400" showInDefault="1" showInWebsite="1"
+                 showInStore="1">
+            <group id="tryzensignite" translate="label" type="text" sortOrder="1"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>ACI Payment</label>
+                <include path="Aci_Payment::system/aci_general_settings.xml"/>
+                <include path="Aci_Payment::system/aci_card_settings.xml"/>
+                <include path="Aci_Payment::system/aci_apm_settings.xml"/>
+                <include path="Aci_Payment::system/aci_subscription_settings.xml"/>
+                <include path="Aci_Payment::system/tryzens_ignite_settings.xml"/>
+            </group>
+        </section>
+    </system>
+</config>

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="tryzensignite_subscription">
+        <field id="apm_subscription" translate="label" type="text" sortOrder="20"
+               showInDefault="1" showInWebsite="1">
+            <label>Recurring Order Eligible Alternative Payment Methods</label>
+            <validate>required-entry</validate>
+            <comment>
+                Enter  Payment Key/s of recurring order eligible Alternative Payment Methods separated by comma
+            </comment>
+            <depends>
+                <field id="active">1</field>
+            </depends>
+            <config_path>payment/tryzensignite_subscription/apm_subscription</config_path>
+        </field>
+    </group>
+</include>
+

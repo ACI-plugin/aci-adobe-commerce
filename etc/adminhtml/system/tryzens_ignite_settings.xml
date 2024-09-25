@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <!-- Hide Ignite fields - Start -->
+    <field id="mode" translate="label" type="obscure" sortOrder="30"
+           showInDefault="0" showInWebsite="0" showInStore="0">
+        <label>Test API Secret Key</label>
+    </field>
+    <field id="test_api_key" translate="label" type="obscure" sortOrder="30"
+           showInDefault="0" showInWebsite="0" showInStore="0">
+        <label>Test API Secret Key</label>
+    </field>
+    <field id="live_api_key" translate="label" type="obscure" sortOrder="30"
+           showInDefault="0" showInWebsite="0" showInStore="0">
+        <label>Test API Secret Key</label>
+    </field>
+    <field id="test_api_secret_key" translate="label" type="obscure" sortOrder="30"
+           showInDefault="0" showInWebsite="0" showInStore="0">
+        <label>Test API Secret Key</label>
+    </field>
+    <field id="test_webhook_url" translate="label" type="text" sortOrder="40"
+           showInDefault="0" showInWebsite="0" showInStore="0">
+        <label>Test Webhook URL</label>
+    </field>
+    <field id="live_api_secret_key" translate="label" type="obscure" sortOrder="60"
+           showInDefault="0" showInWebsite="0" showInStore="0">
+        <label>Live API Secret Key</label>
+    </field>
+    <field id="live_webhook_url" translate="label" type="text" sortOrder="70"
+           showInDefault="0" showInWebsite="0" showInStore="0">
+        <label>Live Webhook URL</label>
+    </field>
+    <field id="new_order_status" translate="label" type="select" sortOrder="80"
+           showInDefault="0" showInWebsite="0" showInStore="0">
+        <label>New Order Status</label>
+    </field>
+    <field id="retry_count" translate="label" type="text" sortOrder="85"
+           showInDefault="0" showInWebsite="0" showInStore="0">
+        <label>Retry Count</label>
+        <comment>Retry count is the number of times notification would attempt to update payment via cron</comment>
+    </field>
+    <field id="allowspecific" translate="label" type="allowspecific" sortOrder="90"
+           showInDefault="0" showInWebsite="0" showInStore="0">
+        <label>Payment From Applicable Countries</label>
+    </field>
+    <field id="specificcountry" translate="label" type="multiselect" sortOrder="100"
+           showInDefault="0" showInWebsite="0" showInStore="0">
+        <label>Payment From Specific Countries</label>
+    </field>
+    <group id="tryzensignite_hpp" translate="label" type="text" sortOrder="110"
+           showInDefault="0" showInWebsite="0"
+           showInStore="0">
+    </group>
+    <!-- Hide Ignite fields - End -->
+</include>

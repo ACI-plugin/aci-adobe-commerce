@@ -1,0 +1,44 @@
+<!-- ko foreach: aciApmPaymentMethods -->
+<div class="payment-method"
+     data-bind="
+     css: {'_active': (getAciApmValue() == $parent.getSelectedAlternativePaymentMethodType())},
+     visible: showPaymentOption()
+    "
+     afterRender="initQuoteSubscribe()">
+    <div class="payment-method-title payment-method-title_aci payment-method-title_aci_apm field choice">
+        <div data-bind="visible: $parent.hasError" class="message error">
+            <span data-bind="text: $parent.getErrorMessage()"></span>
+        </div>
+        <input type="radio"
+               name="payment[method]"
+               class="radio"
+               data-bind="
+               attr: {'id': 'aci_apm_' + getAciApmValue()},
+               value: getAciApmValue(),
+               checked: getAciApmValue() == $parent.getSelectedAlternativePaymentMethodType,
+               click: $parent.selectPaymentMethodType
+        ">
+        <label data-bind="attr: {'for': 'aci_apm_' + getAciApmValue()}" class="label">
+            <span data-bind="text: getTitle()"></span>
+        </label>
+
+        <ul>
+            <!-- ko if: getIcon() -->
+            <li>
+                <img data-bind="attr: { 'src': getIcon(), 'alt': paymentMethod.title }" />
+            </li>
+            <!--/ko-->
+        </ul>
+    </div>
+    <div class="payment-method-content">
+
+        <div class="payment-method-billing-address">
+            <!-- ko foreach: $parents[1].getRegion($parent.getBillingAddressFormName()) -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+
+        <div data-bind="attr: {id: getWidgetWrapper()}"></div>
+    </div>
+</div>
+<!--/ko-->

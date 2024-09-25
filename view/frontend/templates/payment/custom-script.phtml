@@ -1,0 +1,29 @@
+<?php
+/** @var $block CustomScript */
+use Aci\Payment\Block\Payment\CustomScript;
+use Magento\Framework\View\Helper\SecureHtmlRenderer;
+
+/** @var SecureHtmlRenderer $secureRenderer */
+
+$scriptData = $block->getCustomScript();
+$customCss = $block->getCustomCss();
+?>
+<?php
+if ($scriptData):
+    $scriptString = <<<script
+        $scriptData
+script;
+else:
+    $scriptString = <<<script
+        "window.wpwlOptions={};"
+script;
+endif;
+?>
+<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
+<?php
+$styles = <<<STYLE
+    $customCss;
+STYLE;
+?>
+<?= /* @noEscape */ $secureRenderer->renderTag('style', [], $styles, false) ?>
+

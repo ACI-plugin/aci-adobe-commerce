@@ -1,0 +1,194 @@
+<?php
+use Aci\Payment\Block\Widget\ApmSettings;
+
+/**
+ * @var $block ApmSettings
+ */
+
+$existingData = $block->getData('settings');
+$defaultData = $block->getData('default');
+$htmlId = $block->getData('htmlId');
+
+/**
+ * @var Magento\Framework\Escaper $escaper
+ */
+?>
+
+<script>
+    require(['jquery','Magento_Ui/js/modal/confirm'], function($, confirmation) {
+
+        let existingData = <?= $existingData // phpcs:ignore ?>;
+        let defaultData = <?= $defaultData // phpcs:ignore ?>;
+
+        $('#apmAdd').click(function() {
+            let index = Number($('.apm-payment').length) + 1;
+            apmAddSettings(defaultData, index);
+        });
+
+        $(document).on('click', '.apm-payments-remove', function(e) {
+            e.preventDefault();
+            let apmElementIndex = $(this).attr("data-index");
+            confirmation({
+                content: 'Are you sure you want to remove the payment method?',
+                actions: {
+                    confirm: function () {
+                        $('#apm-payment-index-'+apmElementIndex).remove();
+                    },
+                    cancel: function () {
+                        return false;
+                    }
+                }
+            });
+        });
+
+        function apmAddSettings(data, index) {
+            let apmElement = apmMakeSettings(data, index)
+            $('.apm-payments').append(apmElement);
+
+            let parentElement = $('#apm-payment-index-'+index);
+            let statusValue = Number($(parentElement).children('.field').children('.required_dependent').val());
+            let targetElement = $(parentElement).children('.field').children('.required-field');
+            if (targetElement.length && !statusValue) {
+                targetElement.each(function (key, element){
+                    $(element).removeClass('required-entry')
+                });
+            }
+        }
+
+        $(document).on('change', '.required_dependent', function() {
+            let statusValue = Number($(this).val());
+            let parentElement = $(this).parent('.field').parent('.apm-payment');
+            let targetElement = $(parentElement).children('.field').children('.required-field');
+            manageValidation(statusValue, targetElement);
+        });
+
+        $(document).on('change', '#payment_us_tryzensignite_aci_apm_active', function() {
+            if ($(this).val()) {
+                $('.apm-payment').each(function (){
+                    let targetElement = $(this).children('.field').children('.required-field');
+                    let statusValue = Number($(this).children('.field').children('.required_dependent').val());
+                    manageValidation(statusValue, targetElement);
+                });
+            }
+        });
+
+        const manageValidation = (statusValue, targetElement) => {
+            if (statusValue === 1) {
+                $(targetElement).removeClass('ignore-validate');
+                $(targetElement).addClass('required-entry');
+            } else {
+                $(targetElement).addClass('ignore-validate');
+            }
+        }
+
+        const apmMakeSettings = (paymentData, index) => {
+            let nameBase = "groups[tryzensignite][groups][aci_apm][fields][aci_apm_settings][value]";
+
+            let titleValue = (paymentData.title === undefined) ? "" : paymentData.title;
+            let paymentKeyValue = (paymentData.payment_key === undefined) ? "" : paymentData.payment_key;
+            let apmIconValue = (paymentData.apm_icon === undefined) ? "" : paymentData.apm_icon;
+
+            let imgTag = ""
+            if (paymentData.apm_icon_url) {
+                imgTag = `<img src="${paymentData.apm_icon_url}"
+                        class="apm-icon__image"
+                        alt="<?= $escaper->escapeHtmlAttr(__('APM Icon')) ?>"
+                        title="<?= $escaper->escapeHtmlAttr(__('APM Icon')) ?>" />`;
+            }
+
+            return `<div class="apm-payment" id="apm-payment-index-${index}">
+                <div class="field">
+                    <label><?= $escaper->escapeHtml(__('Enabled')) ?></label>
+                    <select name="${nameBase}[${index}][active]" class="required_dependent">
+                        <option value="0" ${Number(paymentData.active) === 0 ? "selected" : ""}>
+                            <?= $escaper->escapeHtml(__('No')) ?>
+                        </option>
+                        <option value="1" ${Number(paymentData.active) === 1 ? "selected" : ""}>
+                            <?= $escaper->escapeHtml(__('Yes')) ?>
+                        </option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label><?= $escaper->escapeHtml(__('Title')) ?></label>
+                    <input
+                        id="dynamic-class"
+                        type="text"
+                        name="${nameBase}[${index}][title]"
+                        value="${titleValue}" class="required-entry required-field"
+                    />
+                </div>
+
+                <div class="field">
+                    <label><?= $escaper->escapeHtml(__('Charge Type')) ?></label>
+                    <select name="${nameBase}[${index}][payment_action]">
+                        <option value="authorize" ${paymentData.payment_action === "authorize" ? "selected" : ""}>
+                            <?= $escaper->escapeHtml(__('Auth')) ?>
+                        </option>
+                        <option value="capture" ${paymentData.payment_action === "capture" ? "selected" : ""}>
+                            <?= $escaper->escapeHtml(__('Sale')) ?>
+                        </option>
+                    </select>
+                </div>
+
+                <div class="field field-image">
+                    <label><?= $escaper->escapeHtml(__('APM Icon')) ?></label>
+                    <input
+                        type="file"
+                        class="apm-icon__input"
+                        name="${nameBase}[${index}][apm_icon]" accept="image/*"
+                    />
+                    ${imgTag}
+                    <input
+                        type="text"
+                        class="no-display"
+                        value="${apmIconValue}"
+                        name="${nameBase}[${index}][apm_icon_delete]"
+                    />
+                    <p class="note">
+                        <span>APM Icon maximum size allowed is 100 KB and
+                        supported file types are JPG, JPEG and PNG</span>
+                    </p>
+                </div>
+
+                <div class="field">
+                    <label><?= $escaper->escapeHtml(__('Payment Key')) ?></label>
+                    <input
+                        type="text"
+                        name="${nameBase}[${index}][payment_key]" value="${paymentKeyValue}"
+                        class="required-entry required-field"
+                    />
+                    <p class="note">
+                        <span>Name of brand to be used for Copy and Pay widget.</span>
+                    </p>
+                </div>
+                <div class="apm-payments-remove" data-index="${index}"></div>
+            </div>`
+        }
+
+        if (existingData) {
+            $.each(existingData, function (key, data) {
+                apmAddSettings(data, key);
+            })
+        } else {
+            apmAddSettings(defaultData, 1);
+        }
+
+        $(".apm-icon__input").change(function () {
+            $(this).css( "maxWidth", "90px");
+            if ($(this)[0].files.length) {
+                $(this).css( "maxWidth", "100%");
+            }
+        })
+
+        $(".apm-icon__input").css( "maxWidth", "90px");
+    });
+</script>
+
+
+
+<div class="apm-payments" id="<?= $escaper->escapeHtmlAttr($htmlId) ?>">
+    <div class="apm-addButton" id="apmAdd">
+        <span>+</span>
+    </div>
+</div>

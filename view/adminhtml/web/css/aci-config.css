@@ -1,0 +1,81 @@
+.apm-payments {
+    position: relative;
+}
+
+.apm-addButton {
+    position: absolute;
+    top: -10px;
+    right: -30px;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.apm-payment {
+    border: 1px solid #000000;
+    padding: 25px 10px 10px;
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.apm-addButton span {
+    font-size: 16px;
+}
+
+.apm-payment .field {
+    width: 100%;
+}
+
+.apm-payment label {
+    width: 20%;
+    display: inline-block;
+}
+
+.apm-payment input, .apm-payment select {
+    width: 75% !important;
+}
+
+.apm-payment label.mage-error {
+    margin-left: 21%;
+    width: 75%;
+}
+
+.apm-payment .apm-icon__image {
+    max-width: 120px;
+}
+
+.field-image input, .field-image label, .field-image img {
+    float: left;
+}
+
+.card-payments__image {
+    display: flex;
+    align-items: center;
+    padding-bottom: 10px;
+}
+
+.card-payments__image img {
+    max-width: 150px;
+    padding-right: 20px;
+}
+
+.card-payments__upload {
+    max-width: 95px;
+}
+
+.no-display {
+    display: none;
+}
+.apm-payments-remove {
+    cursor: pointer;
+    position: absolute;
+    right: 4px;
+    text-align: center;
+    top: 4px;
+}
+.apm-payments-remove:after {
+        font-family: "Admin Icons";
+        content: '\e630';
+        display: inline-block;
+}

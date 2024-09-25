@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<csp_whitelist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Csp/etc/csp_whitelist.xsd">
+    <policies>
+        <policy id="script-src">
+            <values>
+                <value id="oppwa" type="host">eu-test.oppwa.com</value>
+                <value id="klarnacdn" type="host">*.klarnacdn.net</value>
+                <value id="klarnaevt" type="host">*.klarnaevt.evt</value>
+                <value id="playground-klarnaevt" type="host">*.playground.klarnaevt.com</value>
+                <value id="playground-klarna" type="host">*.playground.klarna.com</value>
+                <value id="js-playground-klarna" type="host">js.playground.klarna.com</value>
+                <value id="paypal-sandbox" type="host">*.sandbox.paypal.com</value>
+                <value id="paypal-objects" type="host">www.paypalobjects.com</value>
+                <value id="paypal" type="host">*.paypal.com</value>
+                <value id="pay-google" type="host">pay.google.com</value>
+            </values>
+        </policy>
+        <policy id="style-src">
+            <values>
+                <value id="oppwa" type="host">eu-test.oppwa.com</value>
+                <value id="klarnacdn" type="host">*.klarnacdn.net</value>
+                <value id="klarnaevt" type="host">*.klarnaevt.evt</value>
+                <value id="playground-klarnaevt" type="host">*.playground.klarnaevt.com</value>
+                <value id="playground-klarna" type="host">*.playground.klarna.com</value>
+                <value id="js-playground-klarna" type="host">js.playground.klarna.com</value>
+                <value id="paypal-sandbox" type="host">*.sandbox.paypal.com</value>
+                <value id="paypal-objects" type="host">www.paypalobjects.com</value>
+                <value id="paypal" type="host">*.paypal.com</value>
+                <value id="pay-google" type="host">pay.google.com</value>
+            </values>
+        </policy>
+        <policy id="img-src">
+            <values>
+                <value id="oppwa" type="host">eu-test.oppwa.com</value>
+                <value id="klarnacdn" type="host">*.klarnacdn.net</value>
+                <value id="klarnaevt" type="host">*.klarnaevt.evt</value>
+                <value id="playground-klarnaevt" type="host">*.playground.klarnaevt.com</value>
+                <value id="playground-klarna" type="host">*.playground.klarna.com</value>
+                <value id="js-playground-klarna" type="host">js.playground.klarna.com</value>
+                <value id="paypal-sandbox" type="host">*.sandbox.paypal.com</value>
+                <value id="paypal-objects" type="host">www.paypalobjects.com</value>
+                <value id="paypal" type="host">*.paypal.com</value>
+                <value id="pay-google" type="host">pay.google.com</value>
+            </values>
+        </policy>
+        <policy id="frame-src">
+            <values>
+                <value id="oppwa" type="host">eu-test.oppwa.com</value>
+                <value id="klarnacdn" type="host">*.klarnacdn.net</value>
+                <value id="klarnaevt" type="host">*.klarnaevt.evt</value>
+                <value id="playground-klarnaevt" type="host">*.playground.klarnaevt.com</value>
+                <value id="playground-klarna" type="host">*.playground.klarna.com</value>
+                <value id="js-playground-klarna" type="host">js.playground.klarna.com</value>
+                <value id="paypal-sandbox" type="host">*.sandbox.paypal.com</value>
+                <value id="paypal-objects" type="host">www.paypalobjects.com</value>
+                <value id="paypal" type="host">*.paypal.com</value>
+                <value id="pay-google" type="host">pay.google.com</value>
+            </values>
+        </policy>
+        <policy id="form-action">
+            <values>
+                <value id="oppwa" type="host">eu-test.oppwa.com</value>
+                <value id="klarnacdn" type="host">*.klarnacdn.net</value>
+                <value id="klarnaevt" type="host">*.klarnaevt.evt</value>
+                <value id="playground-klarnaevt" type="host">*.playground.klarnaevt.com</value>
+                <value id="playground-klarna" type="host">*.playground.klarna.com</value>
+                <value id="js-playground-klarna" type="host">js.playground.klarna.com</value>
+                <value id="paypal-sandbox" type="host">*.sandbox.paypal.com</value>
+                <value id="paypal-objects" type="host">www.paypalobjects.com</value>
+                <value id="paypal" type="host">*.paypal.com</value>
+                <value id="pay-google" type="host">pay.google.com</value>
+            </values>
+        </policy>
+    </policies>
+</csp_whitelist>

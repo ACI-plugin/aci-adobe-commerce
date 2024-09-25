@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="aci_cc" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1"
+           showInStore="1">
+        <label><![CDATA[Card Settings]]></label>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <field id="active" translate="label" type="select" sortOrder="10"
+               showInDefault="1" showInWebsite="1">
+            <label>Enabled</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/aci_cc/active</config_path>
+        </field>
+        <field id="title" translate="label" type="text" sortOrder="20"
+               showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Title</label>
+            <validate>required-entry</validate>
+            <config_path>payment/aci_cc/title</config_path>
+        </field>
+        <field id="payment_action" translate="label" type="select" sortOrder="30"
+               showInDefault="1" showInWebsite="1">
+            <label>Charge Type</label>
+            <source_model>Aci\Payment\Model\Adminhtml\Source\PaymentAction</source_model>
+            <config_path>payment/aci_cc/payment_action</config_path>
+        </field>
+        <field id="supported_card_types" translate="label" type="text" sortOrder="40"
+               showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Supported Card Types</label>
+            <validate>required-entry</validate>
+            <comment>Add supported card types separated by comma.</comment>
+            <depends>
+                <field id="active">1</field>
+            </depends>
+            <config_path>payment/aci_cc/supported_card_types</config_path>
+        </field>
+        <field id="card_type_icons" translate="label" sortOrder="50"
+               showInDefault="1" type="Aci\Payment\Block\Adminhtml\Form\Field\Logos\Upload">
+            <label>Card Type Icons</label>
+            <backend_model>Aci\Payment\Model\Config\Backend\Logos\Upload</backend_model>
+            <config_path>payment/aci_cc/card_type_icons</config_path>
+            <comment>
+                Card Type Icon maximum size allowed is 100 KB and supported file types are  JPG, JPEG and PNG</comment>
+        </field>
+        <field id="save_payment_option" translate="label" type="select" sortOrder="60"
+               showInDefault="1" showInWebsite="1">
+            <label>Save Payment Option</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <comment>Selecting this will give an option for user to save the card for future use.</comment>
+            <config_path>payment/aci_cc/save_payment_option</config_path>
+        </field>
+    </group>
+</include>
+
