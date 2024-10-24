@@ -4,7 +4,6 @@
     xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
     <module name="Aci_Payment">
         <sequence>
-            <module name="TryzensIgnite_HPP"/>
             <module name="TryzensIgnite_Subscription"/>
         </sequence>
     </module>

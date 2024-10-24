@@ -204,9 +204,6 @@
                 <item name="system_info"
                       xsi:type="string">Aci\Payment\Gateway\Request\SystemInfoDataBuilder
                 </item>
-                <item name="source"
-                      xsi:type="string">Aci\Payment\Gateway\Request\SourceDataBuilder
-                </item>
                 <item name="subscription_info"
                       xsi:type="string">Aci\Payment\Gateway\Request\SubscriptionDataBuilder
                 </item>
@@ -236,9 +233,6 @@
                 </item>
                 <item name="system_info"
                       xsi:type="string">Aci\Payment\Gateway\Request\SystemInfoDataBuilder
-                </item>
-                <item name="source"
-                      xsi:type="string">Aci\Payment\Gateway\Request\SourceDataBuilder
                 </item>
                 <item name="subscription_info"
                       xsi:type="string">Aci\Payment\Gateway\Request\SubscriptionDataBuilder
@@ -317,8 +311,6 @@
             <argument name="builders" xsi:type="array">
                 <item name="merchant" xsi:type="string">AciPaymentMerchantDataBuilder</item>
                 <item name="checkout_id" xsi:type="string">Aci\Payment\Gateway\Request\CheckoutIdDataBuilder</item>
-                <item name="source"
-                      xsi:type="string">Aci\Payment\Gateway\Request\SourceDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -352,8 +344,6 @@
                 <item name="payment" xsi:type="string">Aci\Payment\Gateway\Request\SubscriptionPaymentDataBuilder</item>
                 <item name="schedule" xsi:type="string">Aci\Payment\Gateway\Request\SubscriptionScheduleDataBuilder
                 </item>
-                <item name="source"
-                      xsi:type="string">Aci\Payment\Gateway\Request\SourceDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
@@ -526,8 +516,6 @@
                 <item name="system_info"
                       xsi:type="string">Aci\Payment\Gateway\Request\SystemInfoDataBuilder
                 </item>
-                <item name="source"
-                      xsi:type="string">Aci\Payment\Gateway\Request\SourceDataBuilder</item>
                 <item name="subscription_info"
                       xsi:type="string">Aci\Payment\Gateway\Request\SubscriptionDataBuilder
                 </item>
@@ -618,9 +606,6 @@
                 <item name="payment_type" xsi:type="string">AciPaymentTypeCancel</item>
                 <item name="system_info"
                       xsi:type="string">Aci\Payment\Gateway\Request\SystemInfoDataBuilder
-                </item>
-                <item name="source"
-                      xsi:type="string">Aci\Payment\Gateway\Request\SourceDataBuilder
                 </item>
                 <item name="subscription_info"
                       xsi:type="string">Aci\Payment\Gateway\Request\SubscriptionDataBuilder
@@ -713,9 +698,6 @@
                 <item name="payment_type" xsi:type="string">AciPaymentTypeRefund</item>
                 <item name="system_info"
                       xsi:type="string">Aci\Payment\Gateway\Request\SystemInfoDataBuilder
-                </item>
-                <item name="source"
-                      xsi:type="string">Aci\Payment\Gateway\Request\SourceDataBuilder
                 </item>
                 <item name="subscription_info"
                       xsi:type="string">Aci\Payment\Gateway\Request\SubscriptionDataBuilder
@@ -811,8 +793,6 @@
                 <item name="merchant" xsi:type="string">AciPaymentMerchantDataBuilder</item>
                 <item name="checkout_id"
                       xsi:type="string">Aci\Payment\Gateway\Request\CheckoutIdWebhookDataBuilder</item>
-                <item name="source"
-                      xsi:type="string">Aci\Payment\Gateway\Request\SourceDataBuilder</item>
             </argument>
         </arguments>
     </virtualType>
