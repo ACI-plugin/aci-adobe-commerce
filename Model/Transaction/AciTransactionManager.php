@@ -4,19 +4,21 @@ namespace Aci\Payment\Model\Transaction;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Command\ResultInterface;
-use TryzensIgnite\Common\Api\QuoteManagerInterface;
-use TryzensIgnite\Common\Api\OrderManagerInterface;
+use TryzensIgnite\Base\Api\QuoteManagerInterface;
+use TryzensIgnite\Base\Api\OrderManagerInterface;
 use Aci\Payment\Model\Order\OrderManager;
 use Aci\Payment\Model\Api\AciPaymentResponseManager;
-use TryzensIgnite\Common\Model\Transaction\TransactionManager as IgniteTransactionManager;
+use TryzensIgnite\Base\Model\Transaction\TransactionManager as IgniteTransactionManager;
 use Aci\Payment\Model\Request\GetStatusRequestManager;
 use Aci\Payment\Model\Data\SavedCard as SavedCardData;
-use Aci\Payment\Model\Ui\AciCcConfigProvider;
+use TryzensIgnite\Onsite\Model\Ui\CcConfigProvider;
 use Aci\Payment\Helper\Utilities;
 use Aci\Payment\Helper\Constants;
 use Aci\Payment\Logger\AciLogger;
 use Aci\Payment\Model\Request\CreateSubscriptionRequestManager;
-use TryzensIgnite\Subscription\Api\RecurringOrderRepositoryInterface;
+use Aci\Payment\Api\RecurringOrderRepositoryInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Model\Quote;
 
 /**
  *
@@ -55,6 +57,16 @@ class AciTransactionManager extends IgniteTransactionManager
     private RecurringOrderRepositoryInterface $recurringOrderRepository;
 
     /**
+     * @var GetStatusRequestManager
+     */
+    protected GetStatusRequestManager $requestManager;
+
+    /**
+     * @var CartRepositoryInterface
+     */
+    protected CartRepositoryInterface $cartRepository;
+
+    /**
      * @param OrderManagerInterface $orderManager
      * @param QuoteManagerInterface $quoteManager
      * @param GetStatusRequestManager $requestManager
@@ -65,6 +77,7 @@ class AciTransactionManager extends IgniteTransactionManager
      * @param AciLogger $logger
      * @param CreateSubscriptionRequestManager $createSubscriptionRequestManager
      * @param RecurringOrderRepositoryInterface $recurringOrderRepository
+     * @param CartRepositoryInterface $cartRepository
      */
     //phpcs:disable
     public function __construct(
@@ -78,6 +91,7 @@ class AciTransactionManager extends IgniteTransactionManager
         AciLogger $logger,
         CreateSubscriptionRequestManager $createSubscriptionRequestManager,
         RecurringOrderRepositoryInterface $recurringOrderRepository,
+        CartRepositoryInterface $cartRepository
     ) {
         $this->aciOrderManager = $aciOrderManager;
         $this->savedCardData   = $savedCardData;
@@ -85,11 +99,14 @@ class AciTransactionManager extends IgniteTransactionManager
         $this->logger = $logger;
         $this->createSubscriptionRequestManager = $createSubscriptionRequestManager;
         $this->recurringOrderRepository = $recurringOrderRepository;
+        $this->requestManager = $requestManager;
+        $this->cartRepository = $cartRepository;
         parent::__construct(
             $orderManager,
             $quoteManager,
-            $requestManager,
-            $responseManager
+            $responseManager,
+            $savedCardData,
+            $cartRepository
         );
     }
 
@@ -105,9 +122,14 @@ class AciTransactionManager extends IgniteTransactionManager
     {
         $checkoutId = $params['id'] ?? null;
         $lastOrderId = $this->orderManager->getLastOrderId();
-        /** @phpstan-ignore-next-line */
-        $lastIncrementId = $this->orderManager->getLastIncrementId();
+        $order = $this->orderManager->getOrder($lastOrderId);
+        $quoteId = (int)$order->getQuoteId();
+        /** @var Quote $quote */
+        $quote = $this->cartRepository->get($quoteId);
         $processStatus = ['status' => false];
+        $isAuthOnly = false;
+        $isCaptured = false;
+        $manualReview = false;
         try {
             //Call Get Status.
             $transactionResponse = $this->getStatus($params);
@@ -130,13 +152,12 @@ class AciTransactionManager extends IgniteTransactionManager
                 );
                 return $processStatus;
             }
-            $manualReview = false;
-            if ($responseStatus === Constants::PENDING) {
-                $manualReview = true;
-            }
             if ($lastOrderId) {
                 //Validate transaction amount from the response with the order amount.
-                $isValidTransaction = $this->aciOrderManager->isValidOrder($transactionResponse);
+                /** @var  AciPaymentResponseManager $responseManager */
+                $responseManager = $this->responseManager;
+                $lastIncrementId = (string)$responseManager->getOrderIncrementIdFromResponse($transactionResponse);
+                $isValidTransaction = $this->aciOrderManager->isValidOrder($transactionResponse, $lastIncrementId);
                 if (!$isValidTransaction) {
                     $this->logger->error(__('Error when validating order details from Get Status response.
                     Order is invalid'));
@@ -151,13 +172,18 @@ class AciTransactionManager extends IgniteTransactionManager
                     );
                     return $processStatus;
                 }
-                /** @var  AciPaymentResponseManager $responseManager */
-                $responseManager = $this->responseManager;
-                $isAuthOnly = $responseManager->isAuthOnly($transactionResponse);
-                $isCaptured = $responseManager->isCaptureMode($transactionResponse);
+                if ($responseStatus === Constants::PENDING) {
+                    $manualReview = true;
+                }
+                if (!$manualReview){
+                    $isAuthOnly = $responseManager->isAuthOnly($transactionResponse);
+                    $isCaptured = $responseManager->isCaptureMode($transactionResponse);
+                }
+                $paymentBrand = $this->aciOrderManager->getPaymentBrandFromResponse($transactionResponse);
                 //Process order
                 $lastProcessedOrderId = (int)$this->aciOrderManager->processOrder(
                     $transactionResponse,
+                    $paymentBrand,
                     $isAuthOnly,
                     $isCaptured,
                     $manualReview
@@ -166,9 +192,9 @@ class AciTransactionManager extends IgniteTransactionManager
                 if ($lastProcessedOrderId) {
                     $customerId = $this->orderManager->getCustomerId($lastProcessedOrderId);
                     //Disable current quote
-                    $this->quoteManager->disableQuote();
+                    $this->quoteManager->disableQuote($quote);
                     if ($customerId && $responseManager->isTokenAvailable($transactionResponse)) {
-                        $method = AciCcConfigProvider::CODE;
+                        $method = CcConfigProvider::CODE;
                         $this->savedCardData->savePaymentCard($transactionResponse, $customerId, $method);
                     }
                     $this->callSchedulerApi($transactionResponse, $lastOrderId, $lastIncrementId);

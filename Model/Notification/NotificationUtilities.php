@@ -147,4 +147,19 @@ class NotificationUtilities
         }
         return false;
     }
+
+    /**
+     * Check if the notification content is of registration API call
+     *
+     * @param array<mixed> $params
+     * @return bool
+     */
+    public function isRegistrationResponse(array $params): bool
+    {
+        if (isset($params['type']) &&
+            $params['type'] === Constants::RESPONSE_TYPE_REGISTRATION) {
+            return true;
+        }
+        return false;
+    }
 }

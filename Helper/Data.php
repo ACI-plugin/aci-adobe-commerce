@@ -4,7 +4,7 @@ namespace Aci\Payment\Helper;
 use Aci\Payment\Gateway\Config\AciCcPaymentConfig;
 use Aci\Payment\Gateway\Config\AciApmPaymentConfig;
 use Aci\Payment\Gateway\Config\AciGenericPaymentConfig;
-use Aci\Payment\Model\Adminhtml\Source\PaymentAction;
+use TryzensIgnite\Base\Model\Adminhtml\Source\PaymentAction;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 

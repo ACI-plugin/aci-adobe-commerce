@@ -6,11 +6,11 @@ use Aci\Payment\Model\ImageHandler;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Aci\Payment\Model\Ui\AciApmConfigProvider;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\Serialize\Serializer\Json as Serializer;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
-use TryzensIgnite\Common\Gateway\Config\PaymentConfig;
+use TryzensIgnite\Base\Gateway\Config\Config as PaymentConfig;
 
 /**
  * Payment configuration class
@@ -25,26 +25,28 @@ class AciApmPaymentConfig extends PaymentConfig
     protected StoreManagerInterface $storeManager;
 
     /**
-     * @var SerializerInterface
+     * @var Serializer
      */
-    protected SerializerInterface $serializer;
+    protected Serializer $serializer;
 
     /**
      * @param StoreManagerInterface $storeManager
-     * @param SerializerInterface $serializer
+     * @param Serializer $serializer
      * @param ScopeConfigInterface $scopeConfig
      * @param string $methodCode
      * @param string $pathPattern
      */
     public function __construct(
         StoreManagerInterface $storeManager,
-        SerializerInterface  $serializer,
+        Serializer  $serializer,
         ScopeConfigInterface $scopeConfig,
         string               $methodCode = AciApmConfigProvider::CODE,
         string               $pathPattern = self::DEFAULT_PATH_PATTERN
     ) {
         parent::__construct(
             $scopeConfig,
+            $serializer,
+            $storeManager,
             $methodCode,
             $pathPattern
         );
@@ -83,7 +85,8 @@ class AciApmPaymentConfig extends PaymentConfig
         $configDataArray = (array)$this->serializer->unserialize($configData);
         $paymentData = [];
         foreach ($configDataArray as $key => $data) {
-            if ($data['active'] && $data['payment_key'] && $data['title']) {
+            if (isset($data['active']) &&
+                $data['active'] && $data['payment_key'] && $data['title']) {
                 $paymentData[$data['payment_key']] = [
                     'name' => $data['payment_key'],
                     'active' => $data['active'],

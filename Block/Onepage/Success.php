@@ -2,9 +2,9 @@
 namespace Aci\Payment\Block\Onepage;
 
 use Aci\Payment\Model\Ui\AciApmConfigProvider;
-use Aci\Payment\Model\Ui\AciCcConfigProvider;
+use TryzensIgnite\Onsite\Model\Ui\CcConfigProvider;
 use Magento\Checkout\Block\Onepage\Success as CoreSuccess;
-use TryzensIgnite\Common\Api\OrderManagerInterface;
+use TryzensIgnite\Base\Api\OrderManagerInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Aci\Payment\Helper\Constants;
 
@@ -13,13 +13,13 @@ use Aci\Payment\Helper\Constants;
  */
 class Success extends CoreSuccess
 {
-    public const PENDING_REVIEW_NOTE = 'We are reviewing  your payment. We will get back to you shortly';
+    public const PENDING_REVIEW_NOTE = 'We are reviewing your payment. We will get back to you shortly';
 
     /**
      * @var array<mixed>
      */
     protected array $aciPaymentMethods = [
-        AciCcConfigProvider::CODE,
+        CcConfigProvider::CODE,
         AciApmConfigProvider::CODE
     ];
 

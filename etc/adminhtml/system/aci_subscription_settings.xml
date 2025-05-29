@@ -1,7 +1,21 @@
 <?xml version="1.0"?>
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
-    <group id="tryzensignite_subscription">
+    <group id="aci_subscription" translate="label" type="text"
+                       sortOrder="130" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+        <label><![CDATA[Recurring Order Settings]]></label>
+        <fieldset_css>aci_subscription_settings</fieldset_css>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+        <field id="active" translate="label" type="select" sortOrder="10"
+               showInDefault="1" showInWebsite="1">
+            <label>Recurring Order Checkout</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <comment>
+                Enabling this will provide an option for the user to place recurring order
+            </comment>
+            <config_path>payment/aci_subscription/active</config_path>
+        </field>
         <field id="apm_subscription" translate="label" type="text" sortOrder="20"
                showInDefault="1" showInWebsite="1">
             <label>Recurring Order Eligible Alternative Payment Methods</label>
@@ -12,7 +26,33 @@
             <depends>
                 <field id="active">1</field>
             </depends>
-            <config_path>payment/tryzensignite_subscription/apm_subscription</config_path>
+            <config_path>payment/aci_subscription/apm_subscription</config_path>
+        </field>
+        <field id="subscription_frequency" translate="label" sortOrder="30"
+               showInDefault="1" showInWebsite="1">
+            <label>Recurring Order Frequency Configuration</label>
+            <validate>required-entry</validate>
+            <frontend_model>Aci\Payment\Block\Adminhtml\Form\Field\Frequency</frontend_model>
+            <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
+            <config_path>payment/aci_subscription/subscription_frequency</config_path>
+            <comment>
+                <![CDATA[<span style="color: red;">If the unit selected is 'week',
+                Please select the value of unit as '1'.
+                </span>]]>
+            </comment>
+        </field>
+        <field id="enable_refund" translate="label" type="select" sortOrder="40"
+               showInDefault="1" showInWebsite="1">
+            <label>Enable Refund</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <comment>
+                <![CDATA[Enabling this will initiate Automatic return from Plug-in side
+                if recurring Order fails and amount is deducted]]>
+            </comment>
+            <depends>
+                <field id="active">1</field>
+            </depends>
+            <config_path>payment/aci_subscription/enable_refund</config_path>
         </field>
     </group>
 </include>

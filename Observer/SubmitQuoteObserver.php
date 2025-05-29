@@ -2,39 +2,25 @@
 
 namespace Aci\Payment\Observer;
 
+use TryzensIgnite\Onsite\Model\Ui\ApplePayConfigProvider;
+use TryzensIgnite\Onsite\Model\Ui\CcConfigProvider;
+use TryzensIgnite\Onsite\Model\Ui\GooglePayConfigProvider;
 use Aci\Payment\Model\Ui\AciApmConfigProvider;
-use Aci\Payment\Model\Ui\AciCcConfigProvider;
-use Magento\Framework\Event\Observer;
-use Magento\Framework\Event\ObserverInterface;
-use Magento\Quote\Model\Quote;
+use TryzensIgnite\Onsite\Observer\SubmitQuoteObserver as IgniteSubmitQuoteObserver;
 
 /**
  * Set quote as active
  */
-class SubmitQuoteObserver implements ObserverInterface
+class SubmitQuoteObserver extends IgniteSubmitQuoteObserver
 {
     /**
      * @var array<mixed>
      */
-    protected array $aciPaymentMethods = [
-        AciCcConfigProvider::CODE,
+    protected array $onsitePaymentMethods = [
+        CcConfigProvider::CODE,
+        ApplePayConfigProvider::CODE,
+        GooglePayConfigProvider::CODE,
+        CcConfigProvider::ONSITE_CC_VAULT_CODE,
         AciApmConfigProvider::CODE
     ];
-
-    /**
-     * Keep cart active
-     *
-     * @param Observer $observer
-     * @return void
-     */
-    public function execute(Observer $observer): void
-    {
-        /** @var Quote $quote */
-        $quote = $observer->getEvent()->getQuote();/** @phpstan-ignore-line */
-        $paymentMethod = strtolower($quote->getPayment()->getMethod());
-        if (in_array($paymentMethod, $this->aciPaymentMethods)) {
-            // Keep cart active until such actions are taken
-            $quote->setIsActive(true);
-        }
-    }
 }

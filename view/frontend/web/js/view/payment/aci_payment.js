@@ -12,10 +12,6 @@ define(
         'use strict';
         rendererList.push(
             {
-                type: 'aci_cc',
-                component: 'Aci_Payment/js/view/payment/method-renderer/aci_cc'
-            },
-            {
                 type: 'aci_apm',
                 component: 'Aci_Payment/js/view/payment/method-renderer/aci_apm'
             }

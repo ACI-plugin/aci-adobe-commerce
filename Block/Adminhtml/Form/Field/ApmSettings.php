@@ -10,7 +10,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Math\Random;
 use Magento\Framework\View\Helper\SecureHtmlRenderer;
 use Magento\Framework\Serialize\SerializerInterface;
-use Aci\Payment\Model\ImageHandler;
+use TryzensIgnite\Base\Model\ImageHandler;
 
 /**
  * Frontend template for APM Settings field

@@ -3,12 +3,11 @@
 namespace Aci\Payment\Gateway\Request;
 
 use Aci\Payment\Helper\Constants;
-use TryzensIgnite\Subscription\Model\ManageSubscriptionFrequency;
+use Aci\Payment\Model\ManageSubscriptionFrequency;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 
 /**
- * Class SubscriptionDataBuilder
  * Builds subscription initial api call data
  */
 class SubscriptionDataBuilder implements BuilderInterface

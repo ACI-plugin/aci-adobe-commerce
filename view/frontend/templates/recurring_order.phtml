@@ -1,0 +1,65 @@
+
+<?php
+use Aci\Payment\Block\RecurringOrder;
+use Magento\Framework\Escaper;
+
+/** @var $block RecurringOrder */
+/** @var $escaper Escaper */
+?>
+
+<?php $recurringOrders = $block->getRecurringOrders(); ?>
+<?php if ($recurringOrders && count($recurringOrders)): ?>
+    <div class="table-wrapper aci-recurring-order">
+        <table class="data table table-order-items recurring-order">
+            <caption class="table-caption"><?= $escaper->escapeHtml(__('Recurring Orders')) ?></caption>
+            <thead>
+            <tr>
+                <th scope="col" class="col"><?= $escaper->escapeHtml(__('Subscription ID')) ?></th>
+                <th scope="col" class="col"><?= $escaper->escapeHtml(__('Last Order ID')) ?></th>
+                <th scope="col" class="col actions"><?= $escaper->escapeHtml(__('Action')) ?></th>
+            </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($recurringOrders as $order): ?>
+                <tr>
+                    <td data-th="<?= $escaper->escapeHtml(__('Subscription ID')) ?>" class="col">
+                        <?= $escaper->escapeHtml($order->getSubscriptionId()) ?>
+                    </td>
+                    <td data-th="<?= $escaper->escapeHtml(__('Last Order ID')) ?>" class="col">
+                        <a
+                            href="<?= $escaper->escapeUrl($block->getViewUrl($order->getOrderId())) ?>"
+                            class="action view">
+                            <span><?= $escaper->escapeHtml($order->getLastIncrementId()) ?></span>
+                        </a>
+                    </td>
+                    <td data-th="<?= $escaper->escapeHtml(__('Actions')) ?>" class="col actions">
+                        <a
+                            href="#"
+                            data-subscription-id="<?= $escaper->escapeHtml($order->getSubscriptionId()) ?>"
+                            class="action primary cancel-subscription">
+                            <span><?= $escaper->escapeHtml(__('Cancel')) ?></span>
+                        </a>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php if ($block->getPagerHtml()): ?>
+        <div class="order-products-toolbar toolbar bottom">
+            <?= /* @noEscape */ $block->getPagerHtml() ?>
+        </div>
+    <?php endif ?>
+<?php else: ?>
+    <div class="message info empty">
+        <span><?= $escaper->escapeHtml($escaper->escapeHtml(__('No Details Available.'))) ?></span>
+    </div>
+<?php endif ?>
+<script type="text/x-magento-init">
+    {
+        ".aci-recurring-order": {
+            "confirmPopup": {
+            }
+        }
+    }
+</script>

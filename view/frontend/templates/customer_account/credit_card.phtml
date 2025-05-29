@@ -1,20 +1,16 @@
 <?php
-/**
- * Copyright Â© Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
- */
+
 use Magento\Framework\View\Element\Template;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
-use Magento\Vault\Block\CardRendererInterface;
+use Aci\Payment\Block\Customer\CardRenderer;
 
 /**
  * @var Magento\Framework\Escaper $escaper
- * @var CardRendererInterface|Template $block
+ * @var CardRenderer|Template $block
  */
 
 $ccNumberView = $escaper->escapeHtml($block->getNumberLast4Digits());
 $cardType = $block->getCardType();
-
 
 ?>
 <tr>

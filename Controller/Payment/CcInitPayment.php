@@ -6,14 +6,14 @@ use Aci\Payment\Logger\AciCcLogger;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\Result\RedirectFactory as ResultRedirectFactory;
-use Aci\Payment\Model\InitializeCcTransaction;
+use Aci\Payment\Model\InitPayment\InitializeCcTransaction;
 use Magento\Framework\Data\Form\FormKey\Validator;
-use TryzensIgnite\Common\Controller\Payment\InitPayment;
+use TryzensIgnite\Base\Controller\Payment\InitTransaction as IgniteInitTransaction;
 
 /**
  * Init payment transaction
  */
-class CcInitPayment extends InitPayment
+class CcInitPayment extends IgniteInitTransaction
 {
     /**
      * CcInitPayment constructor.

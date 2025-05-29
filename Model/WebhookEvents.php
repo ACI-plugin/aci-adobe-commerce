@@ -5,46 +5,49 @@ namespace Aci\Payment\Model;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Payment\Gateway\Command\CommandPoolInterface;
-use TryzensIgnite\Subscription\Model\OrderManagement;
-use TryzensIgnite\Subscription\Model\WebhookEvents as IgniteWebhookEvents;
 use Magento\Framework\Exception\NotFoundException;
 use Magento\Payment\Gateway\Command\CommandException;
 use Magento\Payment\Gateway\Command\ResultInterface;
-use TryzensIgnite\Common\Helper\Constants;
-use Aci\Payment\Helper\Utilities;
-use Aci\Payment\Model\OrderManagement as AciOrderManagement;
+use Magento\Payment\Gateway\Command\CommandPoolInterface;
 
 /**
  * Manage webhook events for recurring orders
  */
-class WebhookEvents extends IgniteWebhookEvents
+class WebhookEvents
 {
     /**
-     * @var Utilities
+     * @var RecurringOrderManagement
      */
-    protected Utilities $utilities;
+    protected RecurringOrderManagement $recurringOrderManagement;
 
     /**
-     * @var AciOrderManagement
+     * @var CommandPoolInterface
      */
-    protected AciOrderManagement $aciOrderManagement;
+    protected CommandPoolInterface $commandPool;
 
     /**
-     * @param Utilities $utilities
-     * @param AciOrderManagement $aciOrderManagement
-     * @param OrderManagement $orderManagement
+     * @param RecurringOrderManagement $recurringOrderManagement
      * @param CommandPoolInterface $commandPool
      */
     public function __construct(
-        Utilities $utilities,
-        AciOrderManagement $aciOrderManagement,
-        OrderManagement $orderManagement,
+        RecurringOrderManagement $recurringOrderManagement,
         CommandPoolInterface $commandPool
     ) {
-        $this->utilities = $utilities;
-        $this->aciOrderManagement = $aciOrderManagement;
-        parent::__construct($orderManagement, $commandPool);
+        $this->recurringOrderManagement = $recurringOrderManagement;
+        $this->commandPool = $commandPool;
+    }
+
+    /**
+     * Process events based on the response
+     *
+     * @param array<mixed> $params
+     * @return string|null
+     * @throws LocalizedException
+     */
+    public function processEvents(array $params): string|null
+    {
+        $transactionDetails = (array)$this->processResponse($params);
+        return $this->createOrder($params, $transactionDetails);
     }
 
     /**
@@ -56,6 +59,7 @@ class WebhookEvents extends IgniteWebhookEvents
      */
     public function processResponse(array $params): array|ResultInterface|bool|null
     {
+
         $paymentCommandParams = [
             Constants::TRANSACTION_ID => $this->getTransactionId($params)
         ];
@@ -89,7 +93,7 @@ class WebhookEvents extends IgniteWebhookEvents
      */
     public function createOrder(array $params, array $transactionDetails): mixed
     {
-        return $this->aciOrderManagement->createRecurringOrder($params, $transactionDetails);
+        return $this->recurringOrderManagement->createRecurringOrder($params, $transactionDetails);
     }
 
     /**

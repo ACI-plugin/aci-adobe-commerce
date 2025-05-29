@@ -4,11 +4,11 @@ namespace Aci\Payment\Gateway\Request;
 
 use Aci\Payment\Helper\Constants;
 use Magento\Framework\Exception\LocalizedException;
-use TryzensIgnite\Subscription\Api\Data\RecurringOrderInterface;
-use TryzensIgnite\Subscription\Api\RecurringOrderRepositoryInterface;
-use TryzensIgnite\Subscription\Model\ManageSubscriptionFrequency;
+use Aci\Payment\Api\Data\RecurringOrderInterface;
+use Aci\Payment\Api\RecurringOrderRepositoryInterface;
+use Aci\Payment\Model\ManageSubscriptionFrequency;
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use TryzensIgnite\Subscription\Model\RecurringOrder;
+use Aci\Payment\Model\RecurringOrder;
 
 /**
  * Class SubscriptionScheduleDataBuilder

@@ -1,21 +1,15 @@
 <?php
 namespace Aci\Payment\Model\Adminhtml\Source;
 
-use Magento\Framework\Data\OptionSourceInterface;
+use TryzensIgnite\Base\Model\Adminhtml\Source\PaymentAction as IgnitePaymentAction;
 
 /**
  * Gets payment action options
  */
-class PaymentAction implements OptionSourceInterface
+class PaymentAction extends IgnitePaymentAction
 {
-    /**
-     * Different payment actions.
-     */
-    public const ACTION_AUTHORIZE       =   'authorize';
-    public const ACTION_SALE            =   'capture';
-
-    public const ACTION_AUTHORIZE_LABEL =   'Auth';
-    public const ACTION_SALE_LABEL      =   'Sale';
+    public const ACTION_AUTHORIZE_LABEL = 'Auth';
+    public const ACTION_SALE_LABEL      = 'Sale';
 
     /**
      * Get the list of options

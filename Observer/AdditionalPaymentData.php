@@ -4,7 +4,6 @@ namespace Aci\Payment\Observer;
 use Magento\Framework\Event\Observer;
 use Magento\Payment\Observer\AbstractDataAssignObserver;
 use Aci\Payment\Helper\Constants;
-use TryzensIgnite\Common\Helper\Constants as CoreConstants;
 use Magento\Quote\Api\Data\PaymentInterface;
 
 /**
@@ -28,8 +27,8 @@ class AdditionalPaymentData extends AbstractDataAssignObserver
         if (is_array($additionalData) && isset($additionalData[Constants::APM_BRAND_NAME])) {
             $aciPaymentData[Constants::APM_BRAND_NAME] = $additionalData[Constants::APM_BRAND_NAME];
 
-            if ($transactionId = $paymentInfo->getAdditionalInformation(CoreConstants::TRANSACTION_ID)) {
-                $aciPaymentData[CoreConstants::TRANSACTION_ID] = $transactionId;
+            if ($transactionId = $paymentInfo->getAdditionalInformation(Constants::TRANSACTION_ID)) {
+                $aciPaymentData[Constants::TRANSACTION_ID] = $transactionId;
             }
         }
 

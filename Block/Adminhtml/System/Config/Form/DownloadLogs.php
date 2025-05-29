@@ -2,14 +2,28 @@
 
 namespace Aci\Payment\Block\Adminhtml\System\Config\Form;
 
+use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
-use TryzensIgnite\Common\Block\Adminhtml\System\Config\Form\DownloadLogs as IgniteDownloadLogs;
 
 /**
  * Frontend model for log download field for Aci payment.
  */
-class DownloadLogs extends IgniteDownloadLogs
+class DownloadLogs extends Field
 {
+    /**
+     * Hides the store view label present on the left side of the button
+     *
+     * @param AbstractElement $element
+     * @return string
+     */
+    public function render(AbstractElement $element): string
+    {
+        $element->setData('scope');
+        $element->setData('can_use_website_value');
+        $element->setData('can_use_default_value');
+        return parent::render($element);
+    }
+
     /**
      * Get download button
      *

@@ -3,14 +3,14 @@
 namespace Aci\Payment\Gateway\Response;
 
 use Aci\Payment\Helper\Utilities;
-use TryzensIgnite\Subscription\Model\ManageSubscriptionFrequency;
+use Aci\Payment\Model\ManageSubscriptionFrequency;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Response\HandlerInterface;
-use TryzensIgnite\Common\Api\QuoteManagerInterface;
-use TryzensIgnite\Subscription\Api\RecurringOrderRepositoryInterface;
-use TryzensIgnite\Subscription\Api\Data\RecurringOrderHistoryInterfaceFactory;
-use TryzensIgnite\Subscription\Api\RecurringOrderHistoryRepositoryInterface;
-use TryzensIgnite\Subscription\Model\RecurringOrder;
+use TryzensIgnite\Base\Api\QuoteManagerInterface;
+use Aci\Payment\Api\RecurringOrderRepositoryInterface;
+use Aci\Payment\Api\Data\RecurringOrderHistoryInterfaceFactory;
+use Aci\Payment\Api\RecurringOrderHistoryRepositoryInterface;
+use Aci\Payment\Model\RecurringOrder;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Aci\Payment\Gateway\Config\AciGenericPaymentConfig;
 

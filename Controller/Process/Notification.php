@@ -4,15 +4,16 @@ declare(strict_types=1);
 namespace Aci\Payment\Controller\Process;
 
 use Aci\Payment\Gateway\Config\AciGenericPaymentConfig;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Request\Http as Request;
 use Magento\Framework\App\Response\Http;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\Serializer\Json as Serializer;
+use TryzensIgnite\Base\Helper\Constants;
 use TryzensIgnite\Notification\Controller\Process\Notification as IgniteNotification;
-use TryzensIgnite\Notification\Helper\Constants as IgniteConstants;
-use TryzensIgnite\Notification\Model\NotificationEvents;
 use Aci\Payment\Logger\AciLogger;
-use Aci\Payment\Helper\Constants;
+use TryzensIgnite\Notification\Model\NotificationManager;
 
 /**
  * Notification - Process notification
@@ -35,39 +36,82 @@ class Notification extends IgniteNotification
     private AciGenericPaymentConfig $paymentConfig;
 
     /**
-     * @var ScopeConfigInterface
+     * @var Request
      */
-    protected ScopeConfigInterface $scopeConfig;
+    private Request $request;
+
+    /**
+     * @var NotificationManager
+     */
+    private NotificationManager $notificationManager;
+
+    /**
+     * @var Http
+     */
+    private Http $response;
 
     /**
      * @param Serializer $serializer
      * @param Request $request
-     * @param NotificationEvents $notificationEvents
      * @param Http $response
      * @param AciLogger $logger
      * @param AciGenericPaymentConfig $paymentConfig
-     * @param ScopeConfigInterface $scopeConfig
+     * @param NotificationManager $notificationManager
      */
     public function __construct(
         Serializer                      $serializer,
         Request                         $request,
-        NotificationEvents              $notificationEvents,
         Http                            $response,
         AciLogger                       $logger,
         AciGenericPaymentConfig         $paymentConfig,
-        ScopeConfigInterface            $scopeConfig,
+        NotificationManager             $notificationManager,
     ) {
-        $this->serializer = $serializer;
         $this->logger = $logger;
         $this->paymentConfig = $paymentConfig;
-        $this->scopeConfig = $scopeConfig;
+        $this->serializer = $serializer;
+        $this->request = $request;
+        $this->notificationManager = $notificationManager;
+        $this->response = $response;
         parent::__construct(
             $serializer,
             $request,
-            $notificationEvents,
+            $notificationManager,
             $response,
-            $scopeConfig,
         );
+    }
+
+    /**
+     * Process notification response from PSP
+     *
+     * @throws LocalizedException
+     */
+    public function execute(): ResultInterface|ResponseInterface|Http
+    {
+        $response = null;
+        if ($this->request->getMethod() == Constants::API_METHOD_GET) {
+            return $this->response->setStatusCode(200);
+        }
+        $body = $this->request->getContent();
+        if (!$body) {
+            return $this->response->setStatusCode(500);
+        }
+        $result = $this->decryptNotification($body);
+        if (!$result) {
+            return $this->response->setStatusCode(200);
+        }
+        $notificationContent = $this->serializer->unSerialize($result);
+        if (is_array($notificationContent) && $notificationContent) {
+            $testNotification = $this->isTestNotification($notificationContent);
+            if ($testNotification) {
+                return $this->response->setStatusCode(200);
+            }
+            $response = $this->notificationManager->saveNotification($notificationContent);
+        }
+        if ($response) {
+            return $this->response->setStatusCode(200);
+        } else {
+            return $this->response->setStatusCode(500);
+        }
     }
 
     /**
@@ -85,10 +129,13 @@ class Notification extends IgniteNotification
         $body = $this->serializer->unSerialize($body);
         $httpBody = $body['encryptedBody'] ?? null;
         if (!$keyFromConfiguration || !$ivFromHttpHeader || !$authTagFromHttpHeader || !$httpBody) {
-            $this->logger->error(__('Required value missing from received notification.
-            Key from Configuration- '. $keyFromConfiguration.
-                'IV from HTTP Header- '.$ivFromHttpHeader.
-                'Auth tag from HTTP Header- '.$authTagFromHttpHeader));
+            $this->logger->error(
+                __('Required value missing from received notification.'),
+                [
+                    'IV from HTTP Header' => $ivFromHttpHeader,
+                    'Auth tag from HTTP Header' => $authTagFromHttpHeader
+                ]
+            );
             return false;
         }
         $key = (string)hex2bin($keyFromConfiguration);
@@ -121,24 +168,6 @@ class Notification extends IgniteNotification
     {
         if (isset($paramsArray['action']) && $paramsArray['action'] == 'webhook activation') {
             return true;
-        }
-        return false;
-    }
-
-    /**
-     * If the webhook response belongs to schedule creation transaction
-     *
-     * @param array<mixed> $paramsArray
-     * @return bool
-     */
-    public function isScheduleCreationTransaction(array $paramsArray): bool
-    {
-        if ($this->scopeConfig->getValue(IgniteConstants::KEY_SUBSCRIPTION_ENABLED)
-            && isset($paramsArray['standingInstruction']['recurringType'])) {
-            if ($paramsArray['standingInstruction']['recurringType'] ==
-                Constants::STANDING_INSTRUCTION_RECURRING_TYPE) {
-                return true;
-            }
         }
         return false;
     }

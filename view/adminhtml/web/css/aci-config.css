@@ -79,3 +79,12 @@
         content: '\e630';
         display: inline-block;
 }
+
+/* Subscription */
+.accordion div.aci_subscription_settings .config td.label {
+    width: 15% !important;
+}
+
+.accordion div.aci_subscription_settings .config td.value {
+    width: 70% !important;
+}

@@ -2,21 +2,20 @@
 
 namespace Aci\Payment\Model\Ui;
 
-use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Aci\Payment\Gateway\Config\AciCcPaymentConfig;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Aci\Payment\Helper\Data;
+use TryzensIgnite\Onsite\Model\Ui\CcConfigProvider as IgniteCcConfigProvider;
+use TryzensIgnite\Onsite\Gateway\Config\CcConfig;
 
 /**
  * Class ConfigProvider - Configuration class for card payment
  */
-class AciCcConfigProvider implements ConfigProviderInterface
+class AciCcConfigProvider extends IgniteCcConfigProvider
 {
-    public const CODE = 'aci_cc';
-
     /**
      * @var AciCcPaymentConfig
      */
@@ -33,18 +32,24 @@ class AciCcConfigProvider implements ConfigProviderInterface
     private Data $dataHelper;
 
     /**
-     * @param AciCcPaymentConfig $config
+     * @param CcConfig $ccConfig
      * @param StoreManagerInterface $storeManager
+     * @param AciCcPaymentConfig $config
      * @param Data $dataHelper
      */
     public function __construct(
-        AciCcPaymentConfig         $config,
+        CcConfig $ccConfig,
         StoreManagerInterface $storeManager,
+        AciCcPaymentConfig         $config,
         Data $dataHelper
     ) {
         $this->config = $config;
         $this->storeManager = $storeManager;
         $this->dataHelper = $dataHelper;
+        parent::__construct(
+            $ccConfig,
+            $storeManager
+        );
     }
 
     /**
@@ -57,23 +62,22 @@ class AciCcConfigProvider implements ConfigProviderInterface
     {
         /** @var Store $store */
         $store = $this->storeManager->getStore();
-        return [
+        $ccConfig = parent::getConfig();
+        $aciConfig = [
             'payment' => [
                 self::CODE => [
-                    'methodCode' => self::CODE,
                     'config' => [
-                        'active' => (bool)$this->config->getValue('active'),
                         'initPaymentUrl' => $store->getUrl(
                             'acipayment/payment/ccinitpayment',
                             ['_secure' => $store->isCurrentlySecure()]
                         ),
                         'scriptSrc' => $this->dataHelper->getPrepareCheckoutUrl(),
                         'logos' => $this->config->getLogos(),
-                        'supportedCardTypes' => $this->config->getSupportedCardTypes(),
-                        'savePaymentOption' => (bool)$this->config->getValue('save_payment_option')
+                        'supportedCardTypes' => $this->config->getSupportedCardTypes()
                     ]
                 ]
             ]
         ];
+        return array_merge($ccConfig, $aciConfig);
     }
 }

@@ -1,21 +1,13 @@
 <?xml version="1.0" ?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
-    <event name="checkout_submit_all_after">
-        <observer name="aci_cc_submit_all_after"
-                  instance="Aci\Payment\Observer\CheckoutSubmitAllAfter"/>
-    </event>
-    <event name="payment_method_assign_data_aci_apm">
-        <observer name="aci_apm_assign_payment_data"
-                  instance="Aci\Payment\Observer\AdditionalPaymentData"/>
-    </event>
-    <event name="sales_model_service_quote_submit_success">
-        <observer name="aci_generic_quote_submit"
-                  instance="Aci\Payment\Observer\SubmitQuoteObserver" />
-    </event>
     <event name="tryzens_ignite_process_schedule_transaction">
         <observer name="process_schedule_transaction" disabled="true" />
         <observer name="aci_process_schedule_transaction"
                   instance="Aci\Payment\Observer\ScheduleTransaction"/>
+    </event>
+    <event name="payment_method_assign_data_aci_apm">
+        <observer name="aci_apm_assign_payment_data"
+                  instance="Aci\Payment\Observer\AdditionalPaymentData"/>
     </event>
 </config>

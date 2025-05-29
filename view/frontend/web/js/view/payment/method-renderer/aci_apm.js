@@ -13,7 +13,6 @@ define(
         'mage/url',
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/action/set-payment-information',
-        'TryzensIgnite_Subscription/js/checkout/model/subscription-options'
     ],
     function (
         $,
@@ -26,8 +25,7 @@ define(
         selectPaymentMethodAction,
         urlBuilder,
         placeOrderAction,
-        setPaymentInformationAction,
-        subscriptionOptions
+        setPaymentInformationAction
     ) {
         'use strict';
 
@@ -81,6 +79,10 @@ define(
                     }, []);
 
                 return paymentList;
+            },
+
+            triggerInitPayment: function () {
+                return true;
             },
 
             buildPaymentMethodComponentResult: function (paymentMethod) {
@@ -181,8 +183,8 @@ define(
                         return self.getInitEndPoint()
                     },
 
-                    loadAciScript: function (paymentMethodCode, checkoutId) {
-                        return self.loadAciScript(paymentMethodCode, checkoutId)
+                    loadAciScript: function (paymentMethodCode, checkoutId, integrity) {
+                        return self.loadAciScript(paymentMethodCode, checkoutId, integrity)
                     },
 
                     hasError: function (error) {
@@ -228,6 +230,7 @@ define(
 
                         return self.initWpwlEvents(formKeyVal, currentObject);
                     },
+
                     sendSubscriptionOptions: function () {
                         return self.sendSubscriptionOptions();
                     },
@@ -250,6 +253,9 @@ define(
                      */
                     initPayment: function(billingAddress = '', shippingAddress = '') {
                         let self = this;
+                        if(quote.isVirtual()) {
+                            shippingAddress = '';
+                        }
                         let paymentMethodCode = self.getPaymentMethodCode();
                         let endpoint = self.getInitEndPoint();
                         let formKeyVal = $('input[name="form_key"]').val();
@@ -268,7 +274,7 @@ define(
                             if (response){
                                 if (response.id) {
                                     window.unloadWidget();
-                                    self.loadAciScript(paymentMethodCode, response.id);
+                                    self.loadAciScript(paymentMethodCode, response.id, response.integrity);
                                     self.initWpwlEvents(formKeyVal);
                                     self.loadAciForm();
                                 } else  {

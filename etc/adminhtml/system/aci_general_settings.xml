@@ -1,59 +1,44 @@
 <?xml version="1.0"?>
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
-    <group id="aci" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1"
-           showInStore="1">
+    <group id="general" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1"
+            showInStore="1">
         <label><![CDATA[General Settings]]></label>
-        <field id="active" translate="label" type="select" sortOrder="10"
-               showInDefault="1" showInWebsite="1">
-            <label>Enabled</label>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/aci_abstract/active</config_path>
-        </field>
         <field id="mode" translate="label" type="select" sortOrder="20"
                showInDefault="1" showInWebsite="1">
             <label>Environment</label>
-            <source_model>Aci\Payment\Model\Adminhtml\Source\Environment</source_model>
-            <config_path>payment/aci_abstract/mode</config_path>
         </field>
-        <field id="test_entity_id" translate="label" type="text" sortOrder="30"
+        <field id="test_entity_id" translate="label" type="text" sortOrder="22"
                showInDefault="1" showInWebsite="1">
             <label>Test Entity ID</label>
             <validate>required-entry alphanumeric</validate>
             <depends>
                 <field id="mode">test_mode</field>
+                <field id="active">1</field>
             </depends>
-            <config_path>payment/aci_abstract/test_entity_id</config_path>
+            <config_path>payment/tryzensignite/test_entity_id</config_path>
             <comment><![CDATA[Fill in Test/Live Entity ID based on the environment selected.]]></comment>
         </field>
-        <field id="live_entity_id" translate="label" type="text" sortOrder="30"
+        <field id="live_entity_id" translate="label" type="text" sortOrder="23"
                showInDefault="1" showInWebsite="1">
             <label>Live Entity ID</label>
             <validate>required-entry alphanumeric</validate>
             <depends>
                 <field id="mode">live_mode</field>
+                <field id="active">1</field>
             </depends>
-            <config_path>payment/aci_abstract/live_entity_id</config_path>
+            <config_path>payment/tryzensignite/live_entity_id</config_path>
             <comment><![CDATA[Fill in Test/Live Entity ID based on the environment selected.]]></comment>
         </field>
-        <field id="test_api_key" translate="label" type="text" sortOrder="40"
+        <field id="test_api_key" translate="label" type="text" sortOrder="30"
                showInDefault="1" showInWebsite="1">
-            <label>Test API Key</label>
             <validate>required-entry</validate>
-            <depends>
-                <field id="mode">test_mode</field>
-            </depends>
-            <config_path>payment/aci_abstract/test_api_key</config_path>
             <comment><![CDATA[Fill in Test/Live API key based on the environment selected.]]></comment>
         </field>
-        <field id="live_api_key" translate="label" type="text" sortOrder="40"
+        <field id="live_api_key" translate="label" type="text" sortOrder="30"
                showInDefault="1" showInWebsite="1">
-            <label>Live API Key</label>
             <validate>required-entry</validate>
-            <depends>
-                <field id="mode">live_mode</field>
-            </depends>
-            <config_path>payment/aci_abstract/live_api_key</config_path>
+            <config_path>payment/tryzensignite/live_api_key</config_path>
             <comment><![CDATA[Fill in Test/Live API key based on the environment selected.]]></comment>
         </field>
         <field id="test_mode" translate="label" type="select" sortOrder="45"
@@ -63,15 +48,11 @@
             <depends>
                 <field id="mode">test_mode</field>
             </depends>
-            <config_path>payment/aci_abstract/test_mode</config_path>
+            <config_path>payment/tryzensignite/test_mode</config_path>
         </field>
-        <field id="webhook_url" translate="label" type="text" sortOrder="50"
+        <field id="webhook_url" translate="label" type="text" sortOrder="60"
                showInDefault="1" showInWebsite="1">
-            <label>Webhook URL</label>
             <comment><![CDATA[Please configure this in ACI portal.]]></comment>
-            <frontend_model>Aci\Payment\Block\Adminhtml\Form\Field\Disabled</frontend_model>
-            <backend_model>Aci\Payment\Model\Config\Backend\WebhookUrl</backend_model>
-            <config_path>payment/aci_abstract/webhook_url</config_path>
         </field>
         <field id="aci_javascript" translate="label" type="textarea" sortOrder="60"
                showInDefault="1" showInWebsite="1">
@@ -79,7 +60,7 @@
             <comment><![CDATA[Javascript helps to customize default checkout payment page experience. Click
                         <a href="https://docs.aciworldwide.com/tutorials/integration-guide/advanced-options"
                         title="Advanced Options" target="_blank">here</a> to learn more.]]></comment>
-            <config_path>payment/aci_abstract/aci_javascript</config_path>
+            <config_path>payment/tryzensignite/aci_javascript</config_path>
         </field>
         <field id="aci_css" translate="label" type="textarea" sortOrder="70"
                showInDefault="1" showInWebsite="1">
@@ -87,13 +68,7 @@
             <comment><![CDATA[CSS helps to customize default checkout payment page experience. Click
                         <a href="https://docs.aciworldwide.com/tutorials/integration-guide/advanced-options"
                         title="Advanced Options" target="_blank">here</a> to learn more.]]></comment>
-            <config_path>payment/aci_abstract/aci_css</config_path>
-        </field>
-        <field id="debug" translate="label" type="select" sortOrder="70"
-               showInDefault="1" showInWebsite="1">
-            <label>Enable Debug Logging</label>
-            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            <config_path>payment/aci_abstract/debug</config_path>
+            <config_path>payment/tryzensignite/aci_css</config_path>
         </field>
         <field id="test_webhook_encryption_secret" translate="label" type="text" sortOrder="75"
                showInDefault="1" showInWebsite="1">
@@ -103,7 +78,7 @@
                 <field id="active">1</field>
             </depends>
             <validate>required-entry</validate>
-            <config_path>payment/aci_abstract/test_webhook_encryption_secret</config_path>
+            <config_path>payment/tryzensignite/test_webhook_encryption_secret</config_path>
             <comment>
                 <![CDATA[Fill in Secret for encryption value generated
                 during webhook endpoint creation in the ACI dashboard.]]></comment>
@@ -116,15 +91,21 @@
                 <field id="active">1</field>
             </depends>
             <validate>required-entry</validate>
-            <config_path>payment/aci_abstract/live_webhook_encryption_secret</config_path>
+            <config_path>payment/tryzensignite/live_webhook_encryption_secret</config_path>
             <comment>
                 <![CDATA[Fill in Secret for encryption value generated
                  during webhook endpoint creation in the ACI dashboard.]]></comment>
         </field>
+        <field id="debug" translate="label" type="select" sortOrder="70"
+               showInDefault="1" showInWebsite="1">
+            <label>Enable Debug Logging</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/tryzensignite/debug</config_path>
+        </field>
         <field id="download_logs" translate="label" type="label" sortOrder="80" showInDefault="1"
                showInWebsite="0" showInStore="0">
             <frontend_model>Aci\Payment\Block\Adminhtml\System\Config\Form\DownloadLogs</frontend_model>
-            <config_path>payment/aci_abstract/download_logs</config_path>
+            <config_path>payment/tryzensignite/download_logs</config_path>
         </field>
     </group>
 </include>

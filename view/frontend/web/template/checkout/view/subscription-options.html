@@ -1,0 +1,80 @@
+<div class="recurring-section recurring" data-bind="visible: isActive()">
+    <!-- ko ifnot: isLoggedIn() -->
+    <div class="recurring__guest-info" style="color: red;">
+        <span data-bind="i18n: 'Please '"></span>
+        <a class="action" data-bind="attr: {href: getLoginUrl()}" style="color: red;">
+            <span data-bind="i18n: 'Sign-in'"></span>
+        </a>/
+        <a class="action" data-bind="attr: {href: getRegisterUrl()}" style="color: red;">
+            <span data-bind="i18n: 'Sign-up'"></span>
+        </a>
+        <span data-bind="i18n: ' to avail Recurring Order option'"></span>
+    </div>
+    <!-- /ko -->
+    <div class="recurring-user-options">
+        <div class="step-title" data-role="title" data-bind="i18n: 'Recurring Order'"></div>
+        <div class="step-title-sub" data-role="title" data-bind="i18n: 'Make this a recurring order'"></div>
+        <div class="option-title" data-role="title" data-bind="i18n: 'Select Your Recurring Order Frequency'"></div>
+        <div class="recurring-user-options-title field choice">
+            <input type="radio"
+                   name="recurring_option"
+                   class="radio"
+                   id="recurring-none"
+                   checked
+                   value=""
+                   data-bind="
+                   click: resetRecurringOption
+            ">
+            </input>
+            <label class="label" for="recurring-none">
+                <span data-bind="i18n: 'None'"></span>
+            </label>
+        </div>
+        <!-- ko if: isLoggedIn() -->
+            <!-- ko foreach: recurringOptions -->
+            <div class="recurring-user-options-field field choice">
+                <input type="radio"
+                       name="recurring_option"
+                       class="radio recurring__subscribe-option"
+                       data-bind="
+                       attr: {'id': getCode()},
+                       value: getOption(),
+                       click: $parent.selectRecurringOption
+                ">
+                </input>
+                <label class="label" data-bind="attr: {'for': getCode()}">
+                    <span data-bind="text: getDisplayName()"></span>
+                </label>
+            </div>
+            <!--/ko-->
+        <!--/ko-->
+        <!-- ko ifnot: isLoggedIn() -->
+            <!-- ko foreach: recurringOptions -->
+            <div class="recurring-user-options-field field choice">
+                <input type="radio"
+                       name="recurring_option"
+                       class="radio recurring__subscribe-option"
+                       data-bind="
+                           attr: {'id': getCode()},
+                           value: getOption(),
+                           click: $parent.selectRecurringOption"
+                       disabled
+                ></input>
+                <label class="label" data-bind="attr: {'for': getCode()}">
+                    <span data-bind="text: getDisplayName()"></span>
+                </label>
+            </div>
+            <!--/ko-->
+        <!--/ko-->
+        <div id="recurring-user-options-content"
+             class="recurring-user-options-content"
+             data-bind="
+            visible: getSelectedRecurringOption()
+        ">
+            <div data-bind="html: getSelectedOptionDesc"></div>
+        </div>
+        <div class="recurring-not-available" style="display: none">
+            <div data-bind="i18n: 'Recurring Order feature is not available'"></div>
+        </div>
+    </div>
+</div>

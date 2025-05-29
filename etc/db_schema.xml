@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="aci_payment_subscription" resource="default" engine="innodb"
+           comment="Recurring Order">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true"
+                nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="int" name="customer_id" padding="10" unsigned="true"
+                nullable="false" comment="Customer ID"/>
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="false"
+                identity="false" default="0" comment="Order ID"/>
+        <column xsi:type="varchar" name="increment_id" nullable="true" length="50" comment="Order Increment ID"/>
+        <column xsi:type="varchar" name="last_increment_id" nullable="true" length="50"
+                comment="Last Order Increment ID"/>
+        <column xsi:type="int" name="last_order_id" unsigned="true" nullable="false"
+                identity="false" default="0" comment="Last Order ID"/>
+        <column xsi:type="varchar" name="subscription_id" nullable="true"
+                length="255" comment="Subscription ID"/>
+        <column xsi:type="tinyint" name="status" nullable="false" unsigned="true"
+                identity="false" default="0"
+                comment="Subscription Status 0 - Cancel, 1 - Active, 2 - Pending"/>
+        <column xsi:type="varchar" name="registration_id" nullable="true"
+                length="255" comment="Registration ID"/>
+        <column xsi:type="varchar" name="job_expression" nullable="true"
+                length="20" comment="Job Expression"/>
+        <column xsi:type="varchar" name="recurring_unit" nullable="true"
+                length="10" comment="Recurring Unit"/>
+        <column xsi:type="varchar" name="recurring_frequency" nullable="true"
+                length="10" comment="Recurring Frequency"/>
+        <column xsi:type="varchar" name="test_mode" nullable="true"
+                length="50" comment="Test Mode"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="foreign"
+                    referenceId="ACI_PAYMENT_SUBSCRIPTION_CUSTOMER_ID_CUSTOMER_ENTITY_ENTITY_ID"
+                    table="aci_payment_subscription" column="customer_id"
+                    referenceTable="customer_entity" referenceColumn="entity_id" onDelete="CASCADE"/>
+        <index xsi:type="index" referenceId="ACI_PAYMENT_SUBSCRIPTION_CUSTOMER_ID" indexType="btree">
+            <column name="customer_id"/>
+        </index>
+        <index xsi:type="index" referenceId="ACI_PAYMENT_SUBSCRIPTION_ORDER_ID" indexType="btree">
+            <column name="order_id"/>
+        </index>
+        <index xsi:type="index" referenceId="ACI_PAYMENT_SUBSCRIPTION_INCREMENT_ID" indexType="btree">
+            <column name="increment_id"/>
+        </index>
+        <index xsi:type="index" referenceId="ACI_PAYMENT_SUBSCRIPTION_LAST_INCREMENT_ID" indexType="btree">
+            <column name="last_increment_id"/>
+        </index>
+        <index xsi:type="index" referenceId="ACI_PAYMENT_SUBSCRIPTION_LAST_ORDER_ID" indexType="btree">
+            <column name="last_order_id"/>
+        </index>
+        <index xsi:type="index" referenceId="ACI_PAYMENT_SUBSCRIPTION_SUBSCRIPTION_ID" indexType="btree">
+            <column name="subscription_id"/>
+        </index>
+        <index xsi:type="index" referenceId="ACI_PAYMENT_SUBSCRIPTION_REGISTRATION_ID" indexType="btree">
+            <column name="registration_id"/>
+        </index>
+        <index xsi:type="index" referenceId="ACI_PAYMENT_SUBSCRIPTION_STATUS" indexType="btree">
+            <column name="status"/>
+        </index>
+    </table>
+    <table name="aci_payment_subscription_orders" resource="default" engine="innodb"
+           comment="Recurring Order history">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true"
+                nullable="false" identity="true" comment="Entity ID"/>
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="false"
+                identity="false" default="0" comment="Order ID"/>
+        <column xsi:type="varchar" name="registration_id" nullable="true"
+                length="255" comment="Registration ID"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="foreign"
+                    referenceId="ACI_PAYMENT_SUBSCRIPTION_ORDERS_ORDER_ID_SALES_ORDER_ENTITY_ID"
+                    table="aci_payment_subscription_orders" column="order_id"
+                    referenceTable="sales_order" referenceColumn="entity_id" onDelete="CASCADE"/>
+        <constraint xsi:type="foreign"
+                  referenceId="ACI_PAYMENT_SUBSCRIPTION_ORDERS_REGISTRATION_ID_ACI_PAYMENT_SUBSCRIPTION_REGISTRATION_ID"
+                    table="aci_payment_subscription_orders" column="registration_id"
+                    referenceTable="aci_payment_subscription" referenceColumn="registration_id" onDelete="CASCADE"/>
+        <index xsi:type="index" referenceId="ACI_PAYMENT_SUBSCRIPTION_ORDERS_ORDER_ID" indexType="btree">
+            <column name="order_id"/>
+        </index>
+        <index xsi:type="index" referenceId="ACI_PAYMENT_SUBSCRIPTION_ORDERS_REGISTRATION_ID" indexType="btree">
+            <column name="registration_id"/>
+        </index>
+    </table>
+</schema>

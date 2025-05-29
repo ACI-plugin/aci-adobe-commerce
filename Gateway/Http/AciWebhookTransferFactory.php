@@ -3,10 +3,8 @@ namespace Aci\Payment\Gateway\Http;
 
 use Aci\Payment\Gateway\Config\AciGenericPaymentConfig;
 use Aci\Payment\Helper\Constants as AciConstants;
-use TryzensIgnite\Common\Helper\Constants;
 use Magento\Payment\Gateway\Http\TransferBuilder;
 use Magento\Payment\Gateway\Http\TransferInterface;
-use TryzensIgnite\Common\Gateway\Http\WebhookTransferFactoryInterface;
 
 /**
  * TransferFactory for webhook transaction commands
@@ -59,6 +57,7 @@ class AciWebhookTransferFactory implements WebhookTransferFactoryInterface
      */
     public function create(array $request):TransferInterface
     {
+        $credentials = $this->config->getCredentials();
         $isSchedulerCall = false;
         $checkoutId = '';
         if (isset($request[AciConstants::KEY_STANDING_INSTRUCTION_SOURCE]) &&
@@ -66,15 +65,16 @@ class AciWebhookTransferFactory implements WebhookTransferFactoryInterface
             AciConstants::SCHEDULER_STANDING_INSTRUCTION_SOURCE) {
             $isSchedulerCall = true;
         }
-        if (!$isSchedulerCall && isset($request[Constants::GET_TRANSACTION_ID])) {
-            $checkoutId = $request[Constants::GET_TRANSACTION_ID];
+
+        if (!$isSchedulerCall && isset($request[AciConstants::GET_TRANSACTION_ID])) {
+            $checkoutId = $request[AciConstants::GET_TRANSACTION_ID];
         }
         return $this->transferBuilder
             ->setUri($this->config->getApiEndPoint() .
                 $this->getApiUri($isSchedulerCall, $checkoutId))
             ->setMethod($this->method)
             ->setBody($request)
-            ->setHeaders([ 'Content-Type' => Constants::CONTENT_TYPE_JSON])
+            ->setHeaders($this->getHeaders($credentials))
             ->build();
     }
 
@@ -90,9 +90,25 @@ class AciWebhookTransferFactory implements WebhookTransferFactoryInterface
         if ($isSchedulerCall) {
             return AciConstants::END_POINT_SUBSCRIPTION;
         }
-        return sprintf(
+        $endPoint = sprintf(
             $this->apiEndPoint,
             $checkoutId
         );
+        $entityId = $this->config->getEntityId();
+        return $endPoint . '?entityId=' . $entityId;
+    }
+
+    /**
+     * Get headers for API call
+     *
+     * @param array<mixed> $credentials
+     * @return array<mixed>
+     */
+    public function getHeaders(array $credentials): array
+    {
+        return [
+            'Content-Type' => AciConstants::ACI_PAYMENT_HEADER_CONTENT_TYPE,
+            'Authorization' => 'Bearer ' . $credentials['apiKey']
+        ];
     }
 }

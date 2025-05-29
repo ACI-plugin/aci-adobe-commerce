@@ -3,12 +3,11 @@ namespace Aci\Payment\Logger;
 
 use Aci\Payment\Gateway\Config\AciGenericPaymentConfig;
 use DateTimeZone;
-use TryzensIgnite\Common\Logger\Logger as BaseLogger;
 
 /**
  * Logger to save the log details in log file
  */
-class AciCcLogger extends BaseLogger
+class AciCcLogger extends AciLogger
 {
     /**
      * @param AciGenericPaymentConfig $paymentConfig

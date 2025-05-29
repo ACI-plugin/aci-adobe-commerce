@@ -11,7 +11,7 @@ use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
 use Magento\Framework\Serialize\SerializerInterface;
-use Aci\Payment\Model\ImageHandler;
+use TryzensIgnite\Base\Model\ImageHandler;
 
 /**
  * Config Model for APM Payment Field
@@ -63,7 +63,7 @@ class ApmSettings extends ConfigValue
      * Prepare data before save
      *
      * @return ApmSettings
-     * @throws FileSystemException
+     * @throws FileSystemException|LocalizedException
      */
     public function beforeSave(): ApmSettings
     {
@@ -103,7 +103,14 @@ class ApmSettings extends ConfigValue
                 }
             }
         }
-
+        foreach ($value as $key => $apmSettingsData) {
+            if (isset($apmSettingsData['title'], $apmSettingsData['payment_key'], $apmSettingsData['apm_icon']) &&
+                $apmSettingsData['title'] == '' && $apmSettingsData['payment_key'] == '' &&
+                $apmSettingsData['apm_icon'] == ''
+                ) {
+                    unset($value[$key]);
+            }
+        }
         $encodedValue = $this->serializer->serialize($value);
         $this->setValue((string)$encodedValue);
 

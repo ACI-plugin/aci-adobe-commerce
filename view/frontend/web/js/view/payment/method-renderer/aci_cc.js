@@ -10,7 +10,7 @@ define(
         'mage/translate',
         'Magento_Checkout/js/model/quote',
         'Magento_Customer/js/model/customer',
-        'TryzensIgnite_Subscription/js/checkout/model/subscription-options'
+        'Aci_Payment/js/checkout/model/subscription-options'
     ],
     function (
         $,
@@ -73,7 +73,7 @@ define(
             },
 
             getPaymentMethodCode: function() {
-                return 'aci_cc';
+                return 'onsite_cc';
             },
 
             getCode: function() {
@@ -102,6 +102,9 @@ define(
              */
             initPayment: function(billingAddress = '', shippingAddress = '') {
                 window.unloadWidget();
+                if(quote.isVirtual()) {
+                    shippingAddress = '';
+                }
                 let self = this;
                 let endpoint = this.getInitEndPoint();
                 let formKeyVal = $('input[name="form_key"]').val();
@@ -122,25 +125,27 @@ define(
                     self.hasError(false);
                     if (response){
                         if (response.id) {
-                            self.loadAciScript(paymentMethodCode, response.id);
-                            if (savePaymentOption && isLoggedIn) {
+                            self.loadAciScript(paymentMethodCode, response.id, response.integrity);
+                            if (isLoggedIn) {
                                 window.wpwlOptions.registrations = Object.assign(
                                     {},
                                     window.wpwlOptions.registrations,
                                     {requireCvv:true}
                                 );
-                                let onReadyEvent = '';
-                                if (window.wpwlOptions.onReady) {
-                                    onReadyEvent = window.wpwlOptions.onReady;
-                                }
-                                window.wpwlOptions.onReady=function(e) {
-                                    if (onReadyEvent) {
-                                        onReadyEvent();
+                                if (savePaymentOption) {
+                                    let onReadyEvent = '';
+                                    if (window.wpwlOptions.onReady) {
+                                        onReadyEvent = window.wpwlOptions.onReady;
                                     }
-                                    var createRegistrationHtml = '<div id ="saved_cards_option"><div class="customLabel">Save my payment details for future purchases</div><div class="customInput"><input type="checkbox" name="createRegistration" value="true"></div></div>';
-                                    $('form.wpwl-form-card').find('#saved_cards_option').remove();
-                                    $('form.wpwl-form-card').find('.wpwl-button').before(createRegistrationHtml);
-                                };
+                                    window.wpwlOptions.onReady=function(e) {
+                                        if (onReadyEvent) {
+                                            onReadyEvent();
+                                        }
+                                        var createRegistrationHtml = '<div id ="saved_cards_option"><div class="customLabel">Save my payment details for future purchases</div><div class="customInput"><input type="checkbox" name="createRegistration" value="true"></div></div>';
+                                        $('form.wpwl-form-card').find('#saved_cards_option').remove();
+                                        $('form.wpwl-form-card').find('.wpwl-button').before(createRegistrationHtml);
+                                    };
+                                }
                             }
                             self.initWpwlEvents(formKeyVal);
                             self.loadAciForm();

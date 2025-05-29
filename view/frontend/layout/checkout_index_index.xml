@@ -22,6 +22,16 @@
                                             <item name="children" xsi:type="array">
                                                 <item name="payment" xsi:type="array">
                                                     <item name="children" xsi:type="array">
+                                                        <item name="beforeMethods" xsi:type="array">
+                                                            <item name="children" xsi:type="array">
+                                                                <item name="subscription-options" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">
+                                                                    Aci_Payment/js/checkout/view/subscription-options
+                                                                    </item>
+                                                                    <item name="sortOrder" xsi:type="string">10</item>
+                                                                </item>
+                                                            </item>
+                                                        </item>
                                                         <item name="renders" xsi:type="array">
                                                             <!-- merge payment method renders here -->
                                                             <item name="children" xsi:type="array">
@@ -30,14 +40,21 @@
                                                                         Aci_Payment/js/view/payment/aci_payment
                                                                     </item>
                                                                     <item name="methods" xsi:type="array">
-                                                                        <item name="aci_cc" xsi:type="array">
-                                                                            <item name="isBillingAddressRequired"
-                                                                                  xsi:type="boolean">true
-                                                                            </item>
-                                                                        </item>
                                                                         <item name="aci_apm" xsi:type="array">
                                                                             <item name="isBillingAddressRequired"
                                                                                   xsi:type="boolean">true</item>
+                                                                        </item>
+                                                                    </item>
+                                                                </item>
+                                                                <item name="onsite" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">
+                                                                        Aci_Payment/js/view/payment/aci_payment_cc
+                                                                    </item>
+                                                                    <item name="methods" xsi:type="array">
+                                                                        <item name="onsite_cc" xsi:type="array">
+                                                                            <item name="isBillingAddressRequired"
+                                                                                  xsi:type="boolean">true
+                                                                            </item>
                                                                         </item>
                                                                     </item>
                                                                 </item>

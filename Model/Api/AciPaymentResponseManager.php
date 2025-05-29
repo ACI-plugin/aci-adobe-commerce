@@ -2,8 +2,9 @@
 namespace Aci\Payment\Model\Api;
 
 use Aci\Payment\Helper\Constants;
-use TryzensIgnite\Common\Model\Api\ResponseManager as IgniteResponseManager;
+use TryzensIgnite\Base\Model\Api\ResponseManager as IgniteResponseManager;
 use Aci\Payment\Helper\Utilities;
+use TryzensIgnite\Base\Model\Utilities\Properties;
 
 /**
  *
@@ -18,11 +19,14 @@ class AciPaymentResponseManager extends IgniteResponseManager
 
     /**
      * @param Utilities $utilities
+     * @param Properties $properties
      */
     public function __construct(
-        Utilities $utilities
+        Utilities $utilities,
+        Properties $properties
     ) {
         $this->utilities = $utilities;
+        parent::__construct($properties);
     }
     /**
      * Check the capture mode.
@@ -57,8 +61,7 @@ class AciPaymentResponseManager extends IgniteResponseManager
         if (!$response) {
             return false;
         }
-        $requestToken = is_array($response)
-        && isset($response['registrationId']) && !isset($response['recurringType']);
+        $requestToken = isset($response['registrationId']) && !isset($response['recurringType']);
         $tokenInformation = $response['card'] ?? null;
         return $requestToken
             && is_array($tokenInformation)
@@ -78,5 +81,44 @@ class AciPaymentResponseManager extends IgniteResponseManager
     public function isSuccessResponse(string $responseCode): bool
     {
         return (bool)$this->utilities->isSuccessResponse($responseCode);
+    }
+
+    /**
+     * Get Order IncrementId from response.
+     *
+     * @param array<mixed> $response
+     * @return string|null
+     */
+    public function getOrderIncrementIdFromResponse(array $response): ?string
+    {
+        return $response[Constants::KEY_ACI_PAYMENT_MERCHANT_TRANSACTION_ID] ??
+            $response[Constants::INVOICE_NUMBER];
+    }
+
+    /**
+     * Get Payment Method Type from response
+     *
+     * @param array<mixed> $response
+     * @return string|null
+     */
+    public function getPaymentMethodType(array $response): ?string
+    {
+        if (isset($response['payload']) && is_array($response['payload'])) {
+            if (isset($response['payload']['paymentMethod'])) {
+                return $response['payload']['paymentMethod'];
+            }
+        }
+        return self::PAYMENT_TYPE_CARD;
+    }
+
+    /**
+     * Get payment ID
+     *
+     * @param array<mixed> $response
+     * @return string
+     */
+    public function getPaymentId(array $response): string
+    {
+        return $response['id'] ?? '';
     }
 }

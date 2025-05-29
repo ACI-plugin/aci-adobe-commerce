@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 namespace Aci\Payment\Model\Order;
 
+use Magento\Sales\Api\CreditmemoManagementInterface;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Controller\Adminhtml\Order\CreditmemoLoader;
+use Magento\Sales\Model\Order\Email\Sender\CreditmemoSender;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\DB\Transaction;
 use Magento\Sales\Api\OrderManagementInterface;
@@ -10,22 +14,36 @@ use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\TransactionRepositoryInterface;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
+use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
 use Magento\Sales\Model\Order\Status\HistoryFactory as OrderStatusHistoryFactory;
-use Magento\Sales\Model\OrderFactory;
 use Magento\Sales\Model\Service\InvoiceService;
-use TryzensIgnite\Common\Model\Order\OrderManager as IgniteCommonOrderManager;
+use Magento\Sales\Model\OrderFactory;
+use TryzensIgnite\Base\Model\Utilities\DataFormatter;
+use TryzensIgnite\Base\Model\Order\OrderManager as BaseIgniteOrderManager;
+use Aci\Payment\Model\Notification\NotificationUtilities;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use Aci\Payment\Helper\Constants;
-use TryzensIgnite\Common\Helper\Constants as IgniteConstants;
+use Magento\Sales\Api\OrderItemRepositoryInterface;
 
 /**
  * Order management for payment methods
  */
-class OrderManager extends IgniteCommonOrderManager
+
+class OrderManager extends BaseIgniteOrderManager
 {
+    /**
+     * @var NotificationUtilities
+     */
+    protected NotificationUtilities $notificationUtilities;
+
+    /**
+     * @var string|null
+     */
+    protected ?string $orderIncrementId = null;
+
     /**
      * @param OrderManagementInterface $orderManagement
      * @param OrderStatusHistoryFactory $orderStatusHistoryFactory
@@ -38,6 +56,13 @@ class OrderManager extends IgniteCommonOrderManager
      * @param InvoiceService $invoiceService
      * @param InvoiceSender $invoiceSender
      * @param Transaction $transaction
+     * @param DataFormatter $dataFormatter
+     * @param CreditmemoManagementInterface $creditmemoManagement
+     * @param CreditmemoLoader $creditmemoLoader
+     * @param Invoice $invoice
+     * @param CreditmemoSender $creditmemoSender
+     * @param NotificationUtilities $notificationUtilities
+     * @param OrderItemRepositoryInterface $orderItemRepository
      */
     public function __construct(
         OrderManagementInterface        $orderManagement,
@@ -51,8 +76,15 @@ class OrderManager extends IgniteCommonOrderManager
         InvoiceService                  $invoiceService,
         InvoiceSender                   $invoiceSender,
         Transaction                     $transaction,
+        DataFormatter                   $dataFormatter,
+        CreditmemoManagementInterface $creditmemoManagement,
+        CreditmemoLoader              $creditmemoLoader,
+        Invoice                       $invoice,
+        CreditmemoSender              $creditmemoSender,
+        NotificationUtilities            $notificationUtilities,
+        OrderItemRepositoryInterface $orderItemRepository
     ) {
-
+        $this->notificationUtilities = $notificationUtilities;
         $this->orderRepository = $orderRepository;
         $this->orderPaymentRepository = $orderPaymentRepository;
         parent::__construct(
@@ -66,30 +98,21 @@ class OrderManager extends IgniteCommonOrderManager
             $checkoutSession,
             $invoiceService,
             $invoiceSender,
-            $transaction
+            $transaction,
+            $dataFormatter,
+            $creditmemoManagement,
+            $creditmemoLoader,
+            $invoice,
+            $creditmemoSender,
+            $orderItemRepository
         );
-    }
-
-    /**
-     * Check if order is valid
-     *
-     * @param array<mixed> $response
-     * @return bool
-     */
-    public function isValidOrder(array $response): bool
-    {
-        $apiTransactionAmount = $this->getTransactionAmountFromResponse($response);
-        $incrementId = $this->getOrderIncrementIdFromResponse($response);
-        /** @var Order $order */
-        $order = $this->getOrderByIncrementId($incrementId);
-        $orderTotalAmount = $order->getGrandTotal();
-        return $apiTransactionAmount == $orderTotalAmount;
     }
 
     /**
      * Process order
      *
      * @param array<mixed> $response
+     * @param string $paymentMethodType
      * @param bool $isAuthOnly
      * @param bool $isCaptured
      * @param bool $manualReview
@@ -98,75 +121,32 @@ class OrderManager extends IgniteCommonOrderManager
      */
     public function processOrder(
         array $response,
+        string $paymentMethodType = '',
         bool $isAuthOnly = false,
         bool $isCaptured = false,
         bool $manualReview = false
     ): bool|int {
-        $orderIncrementId = $this->getOrderIncrementIdFromResponse($response);
-        if (!$orderIncrementId) {
-            return false;
-        }
-        $checkoutTransactionId = $this->getCheckoutIdFromResponse($response);
-        $transactionAmount = $this->getTransactionAmountFromResponse($response);
-        $paymentBrand = $this->getPaymentBrandFromResponse($response);
-        /** @var Order $order */
-        $order = $this->getOrderByIncrementId($orderIncrementId);
-        $orderId = (int)$order->getEntityId();
-        if (!$orderId) {
-            return false;
-        }
-        //Update payment information
-        $this->updateOrderPayment($order, $response);
-        if ($manualReview) { //If the transaction is to be reviewed manually
+        $processedOrderId = parent::processOrder($response, $paymentMethodType, $isAuthOnly, $isCaptured);
+        if ($processedOrderId) {
+            return $processedOrderId;
+        } elseif ($manualReview) { //If the transaction is to be reviewed manually
+            /** @var Order $order */
+            $order = $this->getOrderToProcess($response);
+            $orderId = (int)$order->getEntityId();
+            if (!$orderId) {
+                return false;
+            }
             $state = self::ORDER_STATE_PAYMENT_REVIEW;
             $status = self::ORDER_STATUS_PAYMENT_REVIEW;
-
+            $checkoutTransactionId = $this->getTransactionId($response);
+            $transactionAmount = $this->getTransactionAmountFromResponse($response);
+            $this->updateOrderPayment($order, $response);
             $this->updateOrderStatus(
                 sprintf(
-                    'Payment is to be reviewed manually. CheckoutId: %s Authorized amount: %s Payment Brand: %s',
+                    'Payment is to be reviewed manually. TransactionId: %s Authorized amount: %s Payment Method: %s',
                     $checkoutTransactionId,
                     $transactionAmount,
-                    $paymentBrand
-                ),
-                $state,
-                $status,
-                $orderId
-            );
-            return $orderId;
-        } elseif ($isAuthOnly) {
-            //If auth only transaction
-            $state = self::ORDER_STATE_PENDING;
-            $status = self::ORDER_STATUS_PENDING;
-            //Add transaction entry
-            $this->addNewTransactionEntry(
-                $order,
-                $checkoutTransactionId,
-                Constants::SERVICE_AUTHORIZATION
-            );
-            $this->updateOrderStatus(
-                sprintf(
-                    'Payment authorized. CheckoutId: %s Authorized amount: %s Payment Brand: %s',
-                    $checkoutTransactionId,
-                    $transactionAmount,
-                    $paymentBrand
-                ),
-                $state,
-                $status,
-                $orderId
-            );
-            return $orderId;
-        } elseif ($isCaptured) {
-            $state = self::ORDER_STATE_PROCESSING;
-            $status = self::ORDER_STATUS_PROCESSING;
-            //Generate Invoice
-            $this->generateInvoice($order, $checkoutTransactionId);
-            //Add order comment
-            $this->updateOrderStatus(
-                sprintf(
-                    'Payment captured. CheckoutId: %s Captured amount: %s Payment Brand: %s',
-                    $checkoutTransactionId,
-                    $transactionAmount,
-                    $paymentBrand
+                    $paymentMethodType
                 ),
                 $state,
                 $status,
@@ -187,7 +167,7 @@ class OrderManager extends IgniteCommonOrderManager
      */
     public function updateOrderPayment(Order $order, array $response): void
     {
-        $transactionId = $this->getCheckoutIdFromResponse($response);
+        $transactionId = $this->getTransactionId($response);
 
         /** @var Payment $payment */
         $payment = $order->getPayment();
@@ -195,22 +175,8 @@ class OrderManager extends IgniteCommonOrderManager
         $payment->setTransactionId($transactionId);
         $payment->setAdditionalInformation(Constants::GET_TRANSACTION_RESPONSE, $response);
         $payment->setIsTransactionClosed(false);
-        $payment->setParentTransactionId($transactionId);
-
         $this->orderPaymentRepository->save($payment);
         $this->orderRepository->save($order);
-    }
-
-    /**
-     * Get CheckoutId from response.
-     *
-     * @param array<mixed> $response
-     * @return mixed
-     */
-    public function getCheckoutIdFromResponse(array $response): mixed
-    {
-        return $response[Constants::KEY_CHECKOUT_ID] ??
-            $response[IgniteConstants::CHECKOUT_TRANSACTION_ID];
     }
 
     /**
@@ -221,8 +187,11 @@ class OrderManager extends IgniteCommonOrderManager
      */
     public function getOrderIncrementIdFromResponse(array $response): mixed
     {
-        return $response[Constants::KEY_ACI_PAYMENT_MERCHANT_TRANSACTION_ID] ??
-            $response[IgniteConstants::INVOICE_NUMBER];
+        if ($this->orderIncrementId == null) {
+            $this->orderIncrementId = $response[Constants::KEY_ACI_PAYMENT_MERCHANT_TRANSACTION_ID] ??
+                $response[Constants::INVOICE_NUMBER];
+        }
+        return $this->orderIncrementId;
     }
 
     /**
@@ -234,7 +203,22 @@ class OrderManager extends IgniteCommonOrderManager
     public function getTransactionAmountFromResponse(array $response): mixed
     {
         return $response[Constants::KEY_ACI_PAYMENT_AMOUNT] ??
-            $response[IgniteConstants::GET_TRANSACTION_REQUEST][IgniteConstants::TRANSACTION_TOTAL];
+            $response[Constants::GET_TRANSACTION_REQUEST][Constants::TRANSACTION_TOTAL];
+    }
+
+    /**
+     * Get order total from API response
+     *
+     * @param array<mixed> $response
+     * @return float|int
+     */
+    public function getApiResponseOrderTotal(array $response): float|int
+    {
+        $transactionAmountFromNotification = $this->notificationUtilities->getTransactionAmount($response);
+        if (isset($transactionAmountFromNotification)) {
+            return (float)$transactionAmountFromNotification;
+        }
+        return (float)$this->getTransactionAmountFromResponse($response);
     }
 
     /**
@@ -246,5 +230,30 @@ class OrderManager extends IgniteCommonOrderManager
     public function getPaymentBrandFromResponse(array $response): mixed
     {
         return $response[Constants::KEY_PAYMENT_BRAND] ?? '';
+    }
+
+    /**
+     * Get Transaction ID from Response params.
+     *
+     * @param array<mixed> $response
+     * @return mixed
+     */
+    public function getTransactionId(array $response): mixed
+    {
+        return $response[Constants::KEY_CHECKOUT_ID] ??
+            $response[Constants::CHECKOUT_TRANSACTION_ID];
+    }
+
+    /**
+     * Get order to process
+     *
+     * @param array<mixed> $response
+     * @return OrderInterface|null
+     */
+    public function getOrderToProcess(array $response = []): ?OrderInterface
+    {
+        $orderIncrementId = $this->orderIncrementId ??
+            $this->getOrderIncrementIdFromResponse($response);
+        return $this->getOrderByIncrementId($orderIncrementId);
     }
 }

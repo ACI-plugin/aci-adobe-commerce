@@ -2,33 +2,28 @@
 namespace Aci\Payment\Plugin\Method;
 
 use Magento\Payment\Model\Method\Adapter;
-use Aci\Payment\Gateway\Config\AciGenericPaymentConfig;
-use Aci\Payment\Helper\Constants;
+use TryzensIgnite\Base\Gateway\Config\Config as BaseConfig;
 
-/**
- * Class AdapterPlugin - Class to override isActive method
- */
 class AdapterPlugin
 {
-
     /**
-     * @var AciGenericPaymentConfig
+     * @var BaseConfig
      */
-    private AciGenericPaymentConfig $paymentConfig;
+    private BaseConfig $baseConfig;
 
     /**
-     * MerchantDataBuilder constructor.
+     * AdapterPlugin constructor.
      *
-     * @param AciGenericPaymentConfig $paymentConfig
+     * @param BaseConfig $baseConfig
      */
     public function __construct(
-        AciGenericPaymentConfig $paymentConfig,
+        BaseConfig $baseConfig
     ) {
-        $this->paymentConfig = $paymentConfig;
+        $this->baseConfig = $baseConfig;
     }
 
     /**
-     * Method to check if Aci Generic is enabled.
+     * Method to check if Ignite Generic is enabled.
      *
      * @param Adapter $subject
      * @param bool $result
@@ -36,12 +31,26 @@ class AdapterPlugin
      */
     public function afterIsActive(Adapter $subject, bool $result): bool
     {
-        if ($result) {
-            $isAciGenericEnabled = $this->paymentConfig->getValue(
-                Constants::KEY_ACTIVE,
-            );
-            $result = (bool)$isAciGenericEnabled;
+        $methodCode = $subject->getCode();
+        $isIgnitePaymentMethod = $this->ignitePaymentMethods($methodCode);
+        if ($isIgnitePaymentMethod) {
+            if ($result) {
+                $result = $this->baseConfig->isActive();
+            }
         }
         return $result;
+    }
+    /**
+     * Method to get accepted payment methods for generic module enable check
+     *
+     * @param string $methodCode
+     * @return bool
+     */
+    public function ignitePaymentMethods(string $methodCode): bool
+    {
+        if (str_contains($methodCode, 'aci_apm')) {
+            return true;
+        }
+        return false;
     }
 }

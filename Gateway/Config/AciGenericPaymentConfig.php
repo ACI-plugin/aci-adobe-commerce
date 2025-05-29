@@ -2,28 +2,16 @@
 
 namespace Aci\Payment\Gateway\Config;
 
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Aci\Payment\Model\Ui\AciGenericConfigProvider;
-use TryzensIgnite\Common\Gateway\Config\Config as CommonConfig;
-use Magento\Payment\Gateway\Config\Config;
-use TryzensIgnite\Common\Gateway\Config\PaymentConfig;
+use TryzensIgnite\Base\Gateway\Config\Config as BaseConfig;
 use Aci\Payment\Helper\Constants;
 
 /**
  * Payment configuration class for Aci general settings
  */
-class AciGenericPaymentConfig extends PaymentConfig
+class AciGenericPaymentConfig extends BaseConfig
 {
-    /**
-     * @param ScopeConfigInterface $scopeConfig
-     * @param string $pathPattern
-     */
-    public function __construct(
-        ScopeConfigInterface $scopeConfig,
-        string               $pathPattern = Config::DEFAULT_PATH_PATTERN
-    ) {
-        parent::__construct($scopeConfig, AciGenericConfigProvider::CODE, $pathPattern);
-    }
+    public const XML_PATH_DEFAULT_LOCALE               = 'general/locale/code';
+
     // phpcs:enable
     /**
      * Get entity id from payment config
@@ -45,14 +33,8 @@ class AciGenericPaymentConfig extends PaymentConfig
      */
     public function getApiKey(): ?string
     {
-        if ($this->isTestMode()) {
-            return $this->getValue(
-                CommonConfig::KEY_TEST_PUBLIC_KEY
-            );
-        }
-        return $this->getValue(
-            CommonConfig::KEY_LIVE_PUBLIC_KEY
-        );
+        $credentials = $this->getCredentials();
+        return $credentials['apiKey'] ?? '';
     }
 
     /**
@@ -92,5 +74,15 @@ class AciGenericPaymentConfig extends PaymentConfig
         return trim((string)$this->getValue(
             $key
         ));
+    }
+
+    /**
+     * Check if debug is enabled
+     *
+     * @return mixed|null
+     */
+    public function isDebugEnabled(): mixed
+    {
+        return $this->getValue(Constants::KEY_DEBUG);
     }
 }

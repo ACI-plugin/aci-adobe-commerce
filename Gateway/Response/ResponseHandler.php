@@ -3,10 +3,9 @@
 namespace Aci\Payment\Gateway\Response;
 
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Response\HandlerInterface;
-use TryzensIgnite\Common\Api\QuoteManagerInterface;
+use TryzensIgnite\Base\Api\QuoteManagerInterface;
 use Aci\Payment\Helper\Constants;
 
 /**

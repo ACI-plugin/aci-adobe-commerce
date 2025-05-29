@@ -1,0 +1,51 @@
+{
+    "aci_payment_subscription": {
+        "column": {
+            "entity_id": true,
+            "customer_id": true,
+            "order_id": true,
+            "increment_id": true,
+            "last_increment_id": true,
+            "last_order_id": true,
+            "subscription_id": true,
+            "status": true,
+            "registration_id": true,
+            "job_expression": true,
+            "recurring_unit": true,
+            "recurring_frequency": true,
+            "test_mode": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "ACI_PAYMENT_SUBSCRIPTION_CUSTOMER_ID": true,
+            "ACI_PAYMENT_SUBSCRIPTION_ORDER_ID": true,
+            "ACI_PAYMENT_SUBSCRIPTION_INCREMENT_ID": true,
+            "ACI_PAYMENT_SUBSCRIPTION_LAST_INCREMENT_ID": true,
+            "ACI_PAYMENT_SUBSCRIPTION_LAST_ORDER_ID": true,
+            "ACI_PAYMENT_SUBSCRIPTION_SUBSCRIPTION_ID": true,
+            "ACI_PAYMENT_SUBSCRIPTION_REGISTRATION_ID": true,
+            "ACI_PAYMENT_SUBSCRIPTION_STATUS": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "ACI_PAYMENT_SUBSCRIPTION_CUSTOMER_ID_CUSTOMER_ENTITY_ENTITY_ID": true
+        }
+    },
+    "aci_payment_subscription_orders": {
+        "column": {
+            "entity_id": true,
+            "order_id": true,
+            "registration_id": true
+        },
+        "index": {
+            "ACI_PAYMENT_SUBSCRIPTION_ORDERS_ORDER_ID": true,
+            "ACI_PAYMENT_SUBSCRIPTION_ORDERS_REGISTRATION_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "ACI_PAYMENT_SUBSCRIPTION_ORDERS_ORDER_ID_SALES_ORDER_ENTITY_ID": true,
+            "FK_FB37C1B698B080857BD5011D40FBD6D0": true
+        }
+    }
+}

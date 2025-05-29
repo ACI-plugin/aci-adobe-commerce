@@ -3,21 +3,17 @@
 namespace Aci\Payment\Gateway\Request;
 
 use Aci\Payment\Helper\Constants;
-use TryzensIgnite\Common\Model\Utilities\Metadata;
+use TryzensIgnite\Base\Model\Utilities\Metadata;
 use Aci\Payment\Helper\Utilities;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\ValidatorException;
-use Magento\Payment\Gateway\Request\BuilderInterface;
+use TryzensIgnite\Base\Gateway\Request\SystemInfoDataBuilder as BaseSystemInfoDataBuilder;
 
 /**
  * Builds system info
  */
-class SystemInfoDataBuilder implements BuilderInterface
+class SystemInfoDataBuilder extends BaseSystemInfoDataBuilder
 {
-    /**
-     * @var Metadata
-     */
-    private Metadata $data;
 
     /**
      * @var Utilities
@@ -27,34 +23,43 @@ class SystemInfoDataBuilder implements BuilderInterface
     /**
      * @param Metadata $data
      * @param Utilities $utilities
+     * @param string $moduleName
      */
     public function __construct(
         Metadata $data,
-        Utilities $utilities
+        Utilities $utilities,
+        string $moduleName = ''
     ) {
-        $this->data = $data;
         $this->utilities = $utilities;
+
+        parent::__construct($data, $moduleName);
     }
 
     /**
-     * Builds system info request
+     * Override the properties in parent child class
      *
-     * @param array<string> $buildSubject
-     * @return array<string>
-     * @throws FileSystemException
-     * @throws ValidatorException
+     * @return void
      */
-    public function build(array $buildSubject): array
+    protected function _construct(): void
     {
-        $moduleName = Constants::VALUE_MODULE_NAME;
-        $customParameters = [
-            Constants::KEY_SYSTEM_NAME => Constants::VALUE_PLATFORM_NAME,
-            Constants::KEY_SYSTEM_VERSION =>
-                $this->data->getMagentoEdition().'-'.$this->data->getMagentoVersion(),
-        Constants::KEY_MODULE_NAME => $moduleName,
-        Constants::KEY_MODULE_VERSION => $this->data->getMagentoModuleVersion($moduleName)
+        $this->requestKeys = [
+            'system_name' => Constants::KEY_SYSTEM_NAME,
+            'system_version' => Constants::KEY_SYSTEM_VERSION,
+            'middleware_name' => Constants::KEY_MODULE_NAME,
+            'middleware_version' => Constants::KEY_MODULE_VERSION
         ];
+    }
 
-        return $this->utilities->formatCustomParametersArray($customParameters);
+    /**
+     * Build system information data
+     *
+     * @return array<mixed>
+     * @throws ValidatorException
+     * @throws FileSystemException
+     */
+    public function getRequestData(): array
+    {
+        $systemInfo = parent::getRequestData();
+        return $this->utilities->formatCustomParametersArray($systemInfo);
     }
 }

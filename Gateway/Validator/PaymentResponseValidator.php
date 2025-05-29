@@ -2,23 +2,16 @@
 
 namespace Aci\Payment\Gateway\Validator;
 
-use TryzensIgnite\Common\Helper\Constants;
-use Magento\Payment\Gateway\Helper\SubjectReader;
-use Magento\Payment\Gateway\Validator\AbstractValidator;
 use Magento\Payment\Gateway\Validator\ResultInterface;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
 use Aci\Payment\Helper\Utilities;
+use TryzensIgnite\Base\Gateway\Validator\PaymentResponseValidator as IgnitePaymentResponseValidator;
 
 /**
  * Payment Rest API Response Validator
  */
-class PaymentResponseValidator extends AbstractValidator
+class PaymentResponseValidator extends IgnitePaymentResponseValidator
 {
-    /**
-     * @var string
-     */
-    private string $transactionType;
-
     /**
      * @var Utilities
      */
@@ -27,58 +20,32 @@ class PaymentResponseValidator extends AbstractValidator
     /**
      * @param Utilities $utilities
      * @param ResultInterfaceFactory $resultFactory
-     * @param string $transactionType
+     * @param string $endPoint
      */
     public function __construct(
         Utilities $utilities,
         ResultInterfaceFactory $resultFactory,
-        string $transactionType = ''
+        string $endPoint = ''
     ) {
-        parent::__construct($resultFactory);
-        $this->transactionType = $transactionType;
+        parent::__construct($resultFactory, $endPoint);
         $this->utilities = $utilities;
     }
 
     /**
-     * Validates Capture/Refund/Cancel transaction response
+     * Validates BackOffice Transaction Response
      *
-     * @param array<mixed> $validationSubject
+     * @param array<mixed> $response
      * @return ResultInterface
      */
-    public function validate(array $validationSubject): ResultInterface
+    public function validateBackofficeTransaction(array $response): ResultInterface
     {
-        $response = SubjectReader::readResponse($validationSubject);
         $responseCode = '';
         if ($response && isset($response['result'])) {
             $responseResult = $response['result'];
             $responseCode = $responseResult['code'];
         }
-        return match ($this->transactionType) {
-            Constants::SERVICE_VOID,
-            Constants::SERVICE_CAPTURE,
-            Constants::SERVICE_REFUND =>  $this->validateResponse($responseCode),
-            default =>
-            $this->createResult(
-                false,
-                [
-                    __(
-                        'Something went wrong while processing the  %1 API request',
-                        $this->transactionType
-                    )
-                ]
-            )
-        };
-    }
 
-    /**
-     * Validate Responses
-     *
-     * @param string $status
-     * @return ResultInterface
-     */
-    public function validateResponse(string $status): ResultInterface
-    {
-        if ($this->utilities->isSuccessResponse($status)) {
+        if ($this->utilities->isSuccessResponse($responseCode)) {
             return $this->createResult(true);
         }
         return $this->createResult(false);

@@ -2,16 +2,16 @@
 
 namespace Aci\Payment\Model\Ui;
 
-use Magento\Checkout\Model\ConfigProviderInterface;
+use TryzensIgnite\Base\Gateway\Config\Config as BaseGatewayConfig;
 use Aci\Payment\Gateway\Config\AciGenericPaymentConfig;
 use Magento\Framework\UrlInterface;
+use TryzensIgnite\Base\Model\Ui\BaseConfigProvider;
 
 /**
  * Class AciGenericConfigProvider - generic configuration class
  */
-class AciGenericConfigProvider implements ConfigProviderInterface
+class AciGenericConfigProvider extends BaseConfigProvider
 {
-    public const CODE = 'aci_abstract';
 
     /**
      * @var AciGenericPaymentConfig
@@ -26,11 +26,16 @@ class AciGenericConfigProvider implements ConfigProviderInterface
     /**
      * @param AciGenericPaymentConfig $paymentConfig
      * @param UrlInterface $urlBuilder
+     * @param BaseGatewayConfig $configProvider
      */
     public function __construct(
         AciGenericPaymentConfig         $paymentConfig,
-        UrlInterface         $urlBuilder
+        UrlInterface         $urlBuilder,
+        BaseGatewayConfig $configProvider
     ) {
+        parent::__construct(
+            $configProvider
+        );
         $this->paymentConfig = $paymentConfig;
         $this->urlBuilder = $urlBuilder;
     }
@@ -44,7 +49,7 @@ class AciGenericConfigProvider implements ConfigProviderInterface
     {
         return [
             'payment' => [
-                'aci' => [
+                self::CODE => [
                     'shopperResultURL' => $this->getShopperResultURL(),
                     'customScript' => $this->paymentConfig->getCustomScript(),
                 ]

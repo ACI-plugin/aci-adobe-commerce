@@ -7,7 +7,7 @@ use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Aci\Payment\Helper\Utilities;
 use Aci\Payment\Model\Data\SavedCard as SavedCardData;
-use Aci\Payment\Model\Ui\AciCcConfigProvider;
+use TryzensIgnite\Onsite\Model\Ui\CcConfigProvider;
 
 /**
  * Class CustomerDataBuilder
@@ -50,7 +50,7 @@ class SavedCardDataBuilder implements BuilderInterface
         $order = $payment->getOrder();
         if ($order->getCustomerId()) {
             $savedCardsArray = [];
-            $savedCards = $this->savedCardData->getCustomerSavedCards(AciCcConfigProvider::CODE);
+            $savedCards = $this->savedCardData->getCustomerSavedCards(CcConfigProvider::CODE);
             if ($savedCards) {
                 foreach ($savedCards as $key => $value) {
                     $savedCardsArray["registrations[$key].id"] = $value['value'];

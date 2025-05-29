@@ -6,19 +6,22 @@ use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Intl\DateTimeFactory;
-use Magento\Vault\Model\PaymentToken;
+use Magento\Framework\Stdlib\DateTime\DateTimeFactory as IgniteDateTimeFactory;
+use Magento\Framework\Serialize\Serializer\Json as Serializer;
 use Magento\Vault\Model\PaymentTokenRepository;
 use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Model\ResourceModel\PaymentToken\CollectionFactory;
 use Magento\Vault\Model\ResourceModel\PaymentToken as PaymentTokenResourceModel;
 use Aci\Payment\Helper\Constants;
 use Aci\Payment\Helper\Utilities;
+use TryzensIgnite\Base\Model\Data\SavedCard as IgniteSavedCard;
+use TryzensIgnite\Base\Model\Utilities\Properties;
 
 /**
  *
  * Get saved cards information of the customer
  */
-class SavedCard
+class SavedCard extends IgniteSavedCard
 {
     /**
      * @var CustomerSession
@@ -61,7 +64,6 @@ class SavedCard
     private DateTimeFactory $dateTimeFactory;
 
     /**
-     * SavedCard constructor.
      * @param CustomerSession $customerSession
      * @param CollectionFactory $collectionFactory
      * @param PaymentTokenRepository $paymentTokenRepository
@@ -70,6 +72,9 @@ class SavedCard
      * @param EncryptorInterface $encryptor
      * @param Utilities $utilities
      * @param DateTimeFactory $dateTimeFactory
+     * @param Serializer $serializer
+     * @param IgniteDateTimeFactory $igniteDateTimeFactory
+     * @param Properties $properties
      */
     public function __construct(
         CustomerSession $customerSession,
@@ -79,7 +84,10 @@ class SavedCard
         PaymentTokenResourceModel $paymentTokenResourceModel,
         EncryptorInterface $encryptor,
         Utilities $utilities,
-        DateTimeFactory $dateTimeFactory
+        DateTimeFactory $dateTimeFactory,
+        Serializer $serializer,
+        IgniteDateTimeFactory $igniteDateTimeFactory,
+        Properties $properties
     ) {
         $this->customerSession = $customerSession;
         $this->tokenCollectionFactory = $collectionFactory;
@@ -89,6 +97,16 @@ class SavedCard
         $this->encryptor = $encryptor;
         $this->utilities = $utilities;
         $this->dateTimeFactory = $dateTimeFactory;
+        parent::__construct(
+            $customerSession,
+            $paymentTokenRepository,
+            $paymentTokenFactory,
+            $paymentTokenResourceModel,
+            $encryptor,
+            $serializer,
+            $igniteDateTimeFactory,
+            $properties
+        );
     }
 
     /**
@@ -146,13 +164,10 @@ class SavedCard
             $customerId = $this->getCustomerId();
         }
         $cardIssuer = $data[Constants::KEY_PAYMENT_BRAND];
-        $tokenInformation = $data['card'];
-        $token = $data[Constants::KEY_REGISTRATION_ID];
+        $tokenInformation = $this->getTokenInformation($data);
+        $token = $this->getTokenValue($data);
         $tokenInformation[Constants::CARD_ISSUER] = $cardIssuer;
-        $tokenExpiry = $tokenInformation[Constants::CARD_EXPIRATION_YEAR]
-            . '-'
-            . $tokenInformation[Constants::CARD_EXPIRATION_MONTH];
-
+        $tokenExpiry = $this->getTokenExpiry($tokenInformation);
         $paymentToken = $this->paymentTokenFactory->create();
         $paymentToken->setCustomerId($customerId);
         $paymentToken->setPublicHash($this->encryptor->getHash($token));
@@ -166,72 +181,37 @@ class SavedCard
     }
 
     /**
-     * Checks if token is available and save/update token details
+     * Method to retrieve saved card token from response
      *
-     * @param mixed $response
-     * @param int $customerId
-     * @param string $method
-     * @return void
-     * @throws LocalizedException
+     * @param array<mixed> $data
+     * @return string
      */
-    public function savePaymentCard(mixed $response, int $customerId, string $method): void
+    public function getTokenValue(array $data):string
     {
-        if (!$customerId) {
-            $customerId = $this->getCustomerId();
-        }
-        //Check if card with same token exists
-        $existingTokenData = $this->getSavedCardByGatewayToken(
-            $response[Constants::KEY_REGISTRATION_ID],
-            $method,
-            $customerId
-        );
-        if (is_array($existingTokenData)) {
-            $this->updateSavedCardData($existingTokenData['entity_id']);
-        } else {
-            $this->savePaymentToken(
-                $customerId,
-                $response,
-                $method
-            );
-        }
+        return $data[Constants::KEY_REGISTRATION_ID];
     }
 
     /**
-     * Update existing token
+     * Method to retrieve saved card information from response.
      *
-     * @param int $entityId
-     * @return void
+     * @param array<mixed> $data
+     * @return array<mixed>
      */
-    public function updateSavedCardData(int $entityId): void
+    public function getTokenInformation(array $data): array
     {
-        /** @var PaymentToken $token */
-        $token = $this->paymentTokenRepository->getById($entityId);
-        $token->setIsActive(true);
-        $token->setIsVisible(true);
-        $this->paymentTokenRepository->save($token);
+        return $data['card'];
     }
 
     /**
-     * Get saved card data by gateway token
+     * Method to retrieve card expiry.
      *
-     * @param string $token
-     * @param string $paymentMethodCode
-     * @param int $customerId
-     * @return array<mixed>|bool
-     * @throws LocalizedException
-     */
-    public function getSavedCardByGatewayToken(string $token, string $paymentMethodCode, int $customerId): array|bool
-    {
-        return $this->paymentTokenResourceModel->getByGatewayToken($token, $paymentMethodCode, $customerId);
-    }
-
-    /**
-     * Get customer id from session
-     *
+     * @param array<mixed> $tokenInformation
      * @return mixed
      */
-    public function getCustomerId(): mixed
+    public function getTokenExpiry(array $tokenInformation): mixed
     {
-        return $this->customerSession->getCustomer()->getId();
+        return $tokenInformation[Constants::CARD_EXPIRATION_YEAR]
+            . '-'
+            . $tokenInformation[Constants::CARD_EXPIRATION_MONTH];
     }
 }

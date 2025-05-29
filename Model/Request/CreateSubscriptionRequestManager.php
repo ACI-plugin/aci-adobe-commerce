@@ -6,8 +6,8 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\Command\CommandPoolInterface;
 use Magento\Payment\Gateway\Command\ResultInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectFactory;
-use TryzensIgnite\Common\Api\QuoteManagerInterface;
-use TryzensIgnite\Common\Model\Api\RequestManager;
+use TryzensIgnite\Base\Api\QuoteManagerInterface;
+use TryzensIgnite\Base\Model\Api\RequestManager;
 use Aci\Payment\Helper\Constants;
 use Aci\Payment\Logger\AciLogger;
 

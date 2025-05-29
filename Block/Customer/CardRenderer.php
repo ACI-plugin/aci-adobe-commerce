@@ -6,10 +6,10 @@ use Exception;
 use Aci\Payment\Helper\Constants;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Block\AbstractCardRenderer;
-use Aci\Payment\Model\Ui\AciCcConfigProvider;
 use Aci\Payment\Gateway\Config\AciCcPaymentConfig;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Payment\Model\CcConfigProvider;
+use TryzensIgnite\Onsite\Model\Ui\CcConfigProvider as IgniteCcConfigProvider;
 
 /**
  * Renders customer saved cards
@@ -59,7 +59,7 @@ class CardRenderer extends AbstractCardRenderer
     public function canRender(PaymentTokenInterface $token): bool
     {
         if ($this->paymentConfig->isActive()) {
-            return $token->getPaymentMethodCode() === AciCcConfigProvider::CODE;
+            return $token->getPaymentMethodCode() === IgniteCcConfigProvider::CODE;
         }
         return false;
     }

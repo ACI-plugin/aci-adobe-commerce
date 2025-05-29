@@ -8,8 +8,8 @@ define(
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Checkout/js/model/quote',
         'mage/url',
-        'TryzensIgnite_Subscription/js/checkout/model/subscription-options',
-        'Magento_Customer/js/model/customer',
+        'Aci_Payment/js/checkout/model/subscription-options',
+        'mage/translate'
     ],
     function (
         $,
@@ -19,7 +19,7 @@ define(
         quote,
         urlBuilder,
         subscriptionOptions,
-        customer
+        $t
     ) {
         'use strict';
 
@@ -47,7 +47,7 @@ define(
         return Component.extend({
             defaults: {
                 template: '',
-                totalsValidationUrl: 'acipayment/payment/totalsvalidation',
+                totalsValidationUrl: 'base/payment/quotetotals',
                 quote_grand_total: null
             },
 
@@ -66,11 +66,13 @@ define(
                 }
             },
 
-            loadAciScript: function (paymentMethodCode, checkoutId) {
+            loadAciScript: function (paymentMethodCode, checkoutId, integrity) {
                 if (checkoutId) {
                     let script = document.createElement("script");
                     let scriptSrc = window.checkoutConfig.payment[paymentMethodCode].config.scriptSrc
                     script.src = scriptSrc+'?checkoutId='+checkoutId;
+                    script.integrity = integrity;
+                    script.crossOrigin = "anonymous";
                     script.type = 'text/javascript';
                     document.body.appendChild(script);
                 }
@@ -98,7 +100,7 @@ define(
             },
 
             getAciGenericCode: function() {
-                return 'aci';
+                return 'tryzensignite';
             },
 
             getCode: function() {
@@ -112,23 +114,22 @@ define(
             },
 
             sendSubscriptionOptions: function() {
-                 let self = this;
-                 var recurringOption = subscriptionOptions.recurringOption();
-                    $.ajax({
-                        url: urlBuilder.build('subscription/recurring/recurringorder'),
-                        type: 'POST',
-                        contentType: 'application/json',
-                        async: false,
-                        data: JSON.stringify({
-                            recurring_options: recurringOption
-                        }),
-                        dataType: 'json'
-                    }).done(function (response) {
-                        self.triggerInitPayment();
-                     });
+                let self = this;
+                var recurringOption = subscriptionOptions.recurringOption();
+                $.ajax({
+                    url: urlBuilder.build('acipayment/recurring/recurringorder'),
+                    type: 'POST',
+                    contentType: 'application/json',
+                    async: false,
+                    data: JSON.stringify({
+                        recurring_options: recurringOption
+                    }),
+                    dataType: 'json'
+                }).done(function (response) {
+                    self.triggerInitPayment();
+                });
 
             },
-
 
             validateTotals: function (formKeyVal) {
                 let totalsUnchangedFlag = false;
@@ -159,20 +160,29 @@ define(
 
             handleBeforeSubmit: async function (formKeyVal, parentObject = null) {
                 const self = this;
+                if (!quote.billingAddress()) {
+                   if (parentObject) {
+                       parentObject.initPayment();
+                   } else {
+                       self.initPayment();
+                   }
+                   self.hasError(true);
+                   $('.message.error').html('<div>' +  self.getBillingAddressErrorMessage() + '</div>');
+                   return false;
+                 }
                 let validateTotals = self.validateTotals(formKeyVal);
-                    if (validateTotals) {
-                        return await self.customPlaceOrder();
+                if (validateTotals) {
+                    return await self.customPlaceOrder();
+                } else {
+                    let shippingAddress = quote.shippingAddress() ?? '';
+                    let billingAddress = quote.billingAddress() ?? '';
+                    if (parentObject) {
+                        parentObject.initPayment(billingAddress, shippingAddress);
                     } else {
-                        let shippingAddress = quote.shippingAddress() ?? '';
-                        let billingAddress = quote.billingAddress() ?? '';
-
-                        if (parentObject) {
-                            parentObject.initPayment(billingAddress, shippingAddress);
-                        } else {
-                            self.initPayment(billingAddress, shippingAddress);
-                        }
+                        self.initPayment(billingAddress, shippingAddress);
                     }
-                    return false;
+                }
+                return false;
             },
 
             initWpwlOnReadyEvent: function (formKeyVal, parentObject = null) {
@@ -265,7 +275,7 @@ define(
                     };
                 }
 
-                $(document).off('click').on('click','button.wpwl-button:submit',function(event) {
+                $(document).off('click', 'button.wpwl-button:submit').on('click','button.wpwl-button:submit',function(event) {
                     event.preventDefault();
                     let targetElement = $(this).closest('form.wpwl-form').parent('div.wpwl-container');
                     if (targetElement && targetElement.length) {
@@ -293,8 +303,15 @@ define(
                         function() {
                             fullScreenLoader.stopLoader();
                             return false;
-                    })
-            }
+                        })
+            },
+
+            /**
+             * Get generic error message
+             */
+            getBillingAddressErrorMessage: function() {
+                return $t('Please enter billing address to continue');
+            },
         });
     }
 );

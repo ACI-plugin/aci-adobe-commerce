@@ -1,60 +1,69 @@
 <?php
 namespace Aci\Payment\Gateway\Http;
 
-use Aci\Payment\Gateway\Config\AciGenericPaymentConfig;
-use TryzensIgnite\Common\Gateway\Http\TransferFactoryInterface;
-use TryzensIgnite\Common\Helper\Constants;
-use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
-use Magento\Payment\Gateway\Http\TransferBuilder;
-use Magento\Payment\Gateway\Http\TransferInterface;
 use Aci\Payment\Helper\Constants as AciConstants;
+use TryzensIgnite\Base\Gateway\Http\TransferFactory\TransferFactory as IgniteTransferFactory;
 
 /**
  * TransferFactory for Back Office Operation
  */
-class AciBackOfficeTransferFactory implements TransferFactoryInterface
+class AciBackOfficeTransferFactory extends IgniteTransferFactory
 {
     /**
-     * @var TransferBuilder
+     * Get transaction id from the request
+     *
+     * @param array<mixed> $request
+     * @return string
      */
-    private TransferBuilder $transferBuilder;
-
-    /**
-     * @var AciGenericPaymentConfig
-     */
-    private AciGenericPaymentConfig $config;
-
-    /**
-     * @param TransferBuilder $transferBuilder
-     * @param AciGenericPaymentConfig $config
-     */
-    public function __construct(
-        TransferBuilder $transferBuilder,
-        AciGenericPaymentConfig $config
-    ) {
-        $this->transferBuilder = $transferBuilder;
-        $this->config = $config;
+    public function getTransactionId(array $request): string
+    {
+        return $request[AciConstants::KEY_CHECKOUT_ID] ?? '';
     }
 
     /**
-     * Builds gateway transfer object
+     * Build default URI
      *
-     * @param array<mixed> $request
-     * @param PaymentDataObjectInterface $payment
-     * @return TransferInterface
+     * @param string $endPoint
+     * @return string
      */
-    public function create(array $request, PaymentDataObjectInterface $payment):TransferInterface
+    public function buildDefaultUri(string $endPoint): string
     {
-        $checkoutId = '';
-        if (isset($request[AciConstants::KEY_CHECKOUT_ID])) {
-            $checkoutId = $request[AciConstants::KEY_CHECKOUT_ID];
-            unset($request[AciConstants::KEY_CHECKOUT_ID]);
-        }
-        return $this->transferBuilder
-            ->setUri($this->config->getApiEndPoint() . AciConstants::END_POINT_BACKOFFICE_OPERATION. $checkoutId)
-            ->setMethod(AciConstants::API_METHOD_POST)
-            ->setBody($request)
-            ->setHeaders([ 'Content-Type' => Constants::CONTENT_TYPE_JSON])
-            ->build();
+        return $this->config->getApiEndPoint() . $endPoint;
+    }
+
+    /**
+     * Get headers for API call
+     *
+     * @param array<mixed> $credentials
+     * @return array<mixed>
+     */
+    public function getHeaders(array $credentials): array
+    {
+        return [
+            'Content-Type' => AciConstants::ACI_PAYMENT_HEADER_CONTENT_TYPE,
+            'Authorization' => 'Bearer ' . $credentials['apiKey']
+        ];
+    }
+
+    /**
+     * Get Transaction Type
+     *
+     * @return string
+     */
+    public function getEndPoint(): string
+    {
+        return AciConstants::END_POINT_BACKOFFICE_OPERATION;
+    }
+
+    /**
+     * Build GetTransaction URI
+     *
+     * @param string $defaultUri
+     * @param string $transactionId
+     * @return string
+     */
+    public function buildGetTransactionUri(string $defaultUri, string $transactionId): string
+    {
+        return $defaultUri . $transactionId;
     }
 }

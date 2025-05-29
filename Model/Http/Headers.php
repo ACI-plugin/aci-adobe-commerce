@@ -3,28 +3,46 @@
 namespace Aci\Payment\Model\Http;
 
 use Aci\Payment\Gateway\Config\AciGenericPaymentConfig;
-use TryzensIgnite\Common\Gateway\Config\Config as IgniteCommonConfig;
+use TryzensIgnite\Base\Model\Utilities\Config as UtilityConfig;
 
 /**
  * Create headers for API request
  */
-class Headers extends \TryzensIgnite\Common\Model\Http\Headers
+class Headers implements HeaderInterface
 {
+    /**
+     * @var UtilityConfig
+     */
+    public UtilityConfig $config;
+
     /**
      * @var AciGenericPaymentConfig
      */
-    private AciGenericPaymentConfig $aciGenericPaymentConfig;
+    protected AciGenericPaymentConfig $aciGenericPaymentConfig;
 
     /**
-     * @param IgniteCommonConfig $igniteCommonConfig
+     * @param UtilityConfig $config
      * @param AciGenericPaymentConfig $aciGenericPaymentConfig
      */
     public function __construct(
-        IgniteCommonConfig $igniteCommonConfig,
+        UtilityConfig $config,
         AciGenericPaymentConfig $aciGenericPaymentConfig
     ) {
-        parent::__construct($igniteCommonConfig);
+        $this->config = $config;
         $this->aciGenericPaymentConfig = $aciGenericPaymentConfig;
+    }
+
+    /**
+     * Create headers for API request
+     *
+     * @return string[]
+     */
+    public function getHeaders(): array
+    {
+        return [
+            'Content-Type'  =>  'application/json',
+            'Authorization' =>  'Bearer ' . $this->getApiKey()
+        ];
     }
 
     /**

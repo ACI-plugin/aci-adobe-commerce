@@ -3,26 +3,24 @@ declare(strict_types=1);
 
 namespace Aci\Payment\Model\Notification;
 
-use Aci\Payment\Helper\Constants;
-use Aci\Payment\Model\Request\CreateSubscriptionRequestManager;
-use Magento\Framework\App\Config\ScopeConfigInterface;
+use Aci\Payment\Helper\Utilities;
 use Magento\Framework\Event\ManagerInterface as EventManager;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Model\OrderFactory;
-use TryzensIgnite\Notification\Helper\Constants as IgniteConstants;
-use TryzensIgnite\Notification\Model\TransactionOrderUpdater as IgniteTransactionOrderUpdaterModel;
-use Magento\Sales\Api\CreditmemoManagementInterface;
-use Magento\Sales\Controller\Adminhtml\Order\CreditmemoLoader;
-use Magento\Sales\Model\Order\Invoice;
-use TryzensIgnite\Common\Api\OrderManagerInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
-use Aci\Payment\Logger\AciLogger;
-use Aci\Payment\Helper\Utilities;
-use TryzensIgnite\Notification\Helper\Constants as IgniteNotificationConstants;
 use Magento\Sales\Model\Order;
-use TryzensIgnite\Subscription\Api\RecurringOrderRepositoryInterface;
-use TryzensIgnite\Subscription\Model\RecurringOrder;
-use TryzensIgnite\Common\Model\Order\OrderManager as OrderManager;
+use Magento\Sales\Model\OrderFactory;
+use TryzensIgnite\Base\Model\Utilities\DataFormatter;
+use TryzensIgnite\Notification\Helper\Constants as IgniteNotificationConstants;
+use TryzensIgnite\Notification\Model\Utilities\Properties;
+use Magento\Sales\Api\OrderRepositoryInterface;
+use TryzensIgnite\Base\Model\Order\OrderManager;
+use Aci\Payment\Helper\Constants;
+use TryzensIgnite\Base\Logger\Logger;
+use TryzensIgnite\Notification\Model\TransactionOrderUpdater as IgniteTransactionOrderUpdaterModel;
+use TryzensIgnite\Base\Api\OrderManagerInterface;
+use Aci\Payment\Model\RecurringOrder;
+use Aci\Payment\Api\RecurringOrderRepositoryInterface;
+use Aci\Payment\Model\Request\CreateSubscriptionRequestManager;
+use Aci\Payment\Model\SubscriptionConfigProvider;
 
 /**
  * class TransactionOrderUpdater - Update order based on notification
@@ -31,9 +29,39 @@ class TransactionOrderUpdater extends IgniteTransactionOrderUpdaterModel
 {
 
     /**
+     * @var OrderRepositoryInterface
+     */
+    protected OrderRepositoryInterface $orderRepository;
+
+    /**
+     * @var Properties
+     */
+    protected Properties $properties;
+
+    /**
+     * @var OrderManager
+     */
+    protected OrderManager $orderManager;
+
+    /**
+     * @var NotificationManager
+     */
+    private NotificationManager $notificationManager;
+
+    /**
+     * @var Logger
+     */
+    private Logger $logger;
+
+    /**
      * @var NotificationUtilities
      */
     protected NotificationUtilities $notificationUtilities;
+
+    /**
+     * @var EventManager
+     */
+    private EventManager $eventsManager;
 
     /**
      * @var Utilities
@@ -46,6 +74,11 @@ class TransactionOrderUpdater extends IgniteTransactionOrderUpdaterModel
     private OrderFactory $orderFactory;
 
     /**
+     * @var OrderManagerInterface
+     */
+    private OrderManagerInterface $orderManagerInterface;
+
+    /**
      * @var RecurringOrderRepositoryInterface
      */
     private RecurringOrderRepositoryInterface $recurringOrderRepository;
@@ -56,60 +89,122 @@ class TransactionOrderUpdater extends IgniteTransactionOrderUpdaterModel
     private CreateSubscriptionRequestManager $createSubscriptionRequestManager;
 
     /**
-     * @var ScopeConfigInterface
+     * @var SubscriptionConfigProvider
      */
-    private ScopeConfigInterface $scopeConfig;
+    private SubscriptionConfigProvider $subscriptionConfig;
 
     /**
-     * TransactionOrderUpdater constructor
+     * TransactionOrderUpdater constructor.
      *
-     * @param OrderManagerInterface $orderManagerInterface
-     * @param CreditmemoManagementInterface $creditmemoManagement
-     * @param CreditmemoLoader $creditmemoLoader
-     * @param Invoice $invoice
      * @param OrderRepositoryInterface $orderRepository
-     * @param AciLogger $logger
+     * @param Properties $properties
+     * @param OrderManager $orderManager
+     * @param NotificationManager $notificationManager
+     * @param DataFormatter $dataFormatter
+     * @param Logger $logger
      * @param NotificationUtilities $notificationUtilities
+     * @param EventManager $eventsManager
      * @param Utilities $utilities
      * @param OrderFactory $orderFactory
+     * @param OrderManagerInterface $orderManagerInterface
      * @param RecurringOrderRepositoryInterface $recurringOrderRepository
      * @param CreateSubscriptionRequestManager $createSubscriptionRequestManager
-     * @param ScopeConfigInterface $scopeConfig
-     * @param OrderManager $orderManager
-     * @param EventManager $eventsManager
+     * @param SubscriptionConfigProvider $subscriptionConfig
      */
     public function __construct(
-        OrderManagerInterface         $orderManagerInterface,
-        CreditmemoManagementInterface $creditmemoManagement,
-        CreditmemoLoader              $creditmemoLoader,
-        Invoice                       $invoice,
-        OrderRepositoryInterface      $orderRepository,
-        AciLogger                     $logger,
-        NotificationUtilities         $notificationUtilities,
-        Utilities                     $utilities,
-        OrderFactory                    $orderFactory,
-        RecurringOrderRepositoryInterface $recurringOrderRepository,
-        CreateSubscriptionRequestManager $createSubscriptionRequestManager,
-        ScopeConfigInterface            $scopeConfig,
-        OrderManager                  $orderManager,
-        EventManager                    $eventsManager
+        OrderRepositoryInterface                        $orderRepository,
+        Properties                                      $properties,
+        OrderManager                                    $orderManager,
+        NotificationManager                             $notificationManager,
+        DataFormatter                                   $dataFormatter,
+        Logger                                          $logger,
+        NotificationUtilities                           $notificationUtilities,
+        EventManager                                    $eventsManager,
+        Utilities                                       $utilities,
+        OrderFactory                                    $orderFactory,
+        OrderManagerInterface                           $orderManagerInterface,
+        RecurringOrderRepositoryInterface               $recurringOrderRepository,
+        CreateSubscriptionRequestManager                $createSubscriptionRequestManager,
+        SubscriptionConfigProvider                      $subscriptionConfig
     ) {
-        $this->notificationUtilities    = $notificationUtilities;
+        $this->notificationUtilities = $notificationUtilities;
+        $this->eventsManager = $eventsManager;
+        $this->orderManager            = $orderManager;
+        $this->notificationManager     = $notificationManager;
+        $this->logger                  = $logger;
         $this->utilities                 = $utilities;
         $this->orderFactory              = $orderFactory;
+        $this->orderManagerInterface = $orderManagerInterface;
         $this->recurringOrderRepository = $recurringOrderRepository;
         $this->createSubscriptionRequestManager = $createSubscriptionRequestManager;
-        $this->scopeConfig = $scopeConfig;
+        $this->subscriptionConfig = $subscriptionConfig;
         parent::__construct(
-            $orderManagerInterface,
-            $creditmemoManagement,
-            $creditmemoLoader,
-            $invoice,
             $orderRepository,
-            $logger,
+            $properties,
             $orderManager,
-            $eventsManager
+            $notificationManager,
+            $dataFormatter,
+            $logger
         );
+    }
+
+    /**
+     * Process Notification from cron
+     *
+     * @param array<mixed> $notificationContent
+     * @return LocalizedException|string|null
+     * @throws LocalizedException
+     */
+    public function processNotification(array $notificationContent): LocalizedException|string|null
+    {
+        // Check whether notification received is registration
+        $isRegistrationResponse = $this->isRegistrationResponse($notificationContent);
+        if ($isRegistrationResponse) {
+            return IgniteNotificationConstants::NOTIFICATION_STATUS_SUCCESS;
+        }
+        // Check whether notification received is scheduler API response
+        $isSchedulerResponse = $this->isSchedulerResponse($notificationContent);
+        // Check whether notification received is transaction of recurring order
+        $scheduleTransaction = $this->isRecurringOrderTransaction($notificationContent);
+        if ($scheduleTransaction) {
+            $this->eventsManager->dispatch(
+                'tryzens_ignite_process_schedule_transaction',
+                ['scheduleParams' => $notificationContent]
+            );
+            return IgniteNotificationConstants::NOTIFICATION_STATUS_SUCCESS;
+        }
+        if (!$isSchedulerResponse) {
+            $action = $this->notificationManager->getActionType($notificationContent);
+            $transactionId = $this->notificationManager->getTransactionId($notificationContent);
+            $incrementId = $this->notificationManager->getIncrementIdFromNotification($notificationContent);
+            // checks if the notification response is from schedule Creation order
+            $isScheduledTransaction = $this->isScheduleCreationTransaction($notificationContent);
+            if ($isScheduledTransaction) {
+                $this->validateScheduleOrderCreation($notificationContent);
+            }
+            try {
+                if ($incrementId) {
+                    /** @var Order $order */
+                    $order = $this->orderManager->getOrderByIncrementId($incrementId);
+                    $isValidNotificationAmount = $this->validateNotificationAmount($notificationContent, $order);
+                    if ($isValidNotificationAmount) {
+                        return $this->processOrder($action, $notificationContent, $order, $transactionId);
+                    }
+                }
+            } catch (\Exception) {
+                $this->logger->info('Error occurred while processing notification');
+                throw new LocalizedException(
+                    __('Error occurred while processing notification')
+                );
+            }
+
+        } else {
+            $isSchedulerResponseProcessed = $this->processSchedulerNotification($notificationContent);
+            if ($isSchedulerResponseProcessed) {
+                return IgniteNotificationConstants::NOTIFICATION_STATUS_SUCCESS;
+            }
+        }
+        return IgniteNotificationConstants::NOTIFICATION_STATUS_ERROR;
     }
 
     /**
@@ -124,23 +219,6 @@ class TransactionOrderUpdater extends IgniteTransactionOrderUpdaterModel
     }
 
     /**
-     * Get action type from response params.
-     *
-     * @param array<mixed> $response
-     * @return mixed
-     */
-    public function getActionType(array $response): mixed
-    {
-        return match ($this->notificationUtilities->getActionType($response)) {
-            Constants::PAYMENT_TYPE_CAPTURE, Constants::PAYMENT_TYPE_SALE => Constants::NOTIFICATION_SERVICE_CAPTURE,
-            Constants::PAYMENT_TYPE_REFUND => Constants::SERVICE_REFUND,
-            Constants::PAYMENT_TYPE_CANCEL => Constants::SERVICE_VOID,
-            Constants::PAYMENT_TYPE_AUTH => Constants::SERVICE_AUTHORIZE,
-            default => ''
-        };
-    }
-
-    /**
      * Get increment id from response params.
      *
      * @param array<mixed> $response
@@ -152,82 +230,49 @@ class TransactionOrderUpdater extends IgniteTransactionOrderUpdaterModel
     }
 
     /**
-     * Format TransactionDetails array from response array
-     *
-     * @param array<mixed> $response
-     * @return array<mixed>
-     */
-    public function getTransactionDetails(array $response): array
-    {
-        $orderId = $this->getIncrementId($response);
-        $transactionId = $this->getTransactionId($response);
-        $transactionAmt = $this->notificationUtilities->getTransactionAmount($response);
-        $paymentBrand = $this->notificationUtilities->getPaymentBrand($response);
-        if (!$orderId || !$transactionId || !$transactionAmt) {
-            $this->logger->error(__('One of the required value is blank. Order Id :' .
-                $orderId. ', Transaction Id :' .
-                $transactionId. ', TransactionAmount :' .
-                $transactionAmt));
-            return [];
-        }
-        return [
-            'ResponseMessage' => '',
-            'CheckoutTransactionId' => $transactionId,
-            'InvoiceNumber' => $orderId,
-            'TransactionId' => $transactionId,
-            'OriginalRequest' => [
-                'InvoiceNumber' => $orderId,
-                'TransactionTotal' => $transactionAmt,
-                'CaptureMode' => 0
-            ],
-            'AuthResponse' => [
-                'Amount' => $transactionAmt,
-                'Decision' => 'ACCEPT'
-            ],
-            'paymentBrand' => $paymentBrand
-        ];
-    }
-
-    /**
      * Get Transaction Amount from response.
      *
-     * @param array<mixed> $response
-     * @return mixed
+     * @param array<mixed> $notificationContent
+     * @return float
      */
-    public function getTransactionAmount(array $response): mixed
+    public function getTransactionAmount(array $notificationContent): float
     {
-        return $this->notificationUtilities->getTransactionAmount($response);
+        return (float)$this->notificationUtilities->getTransactionAmount($notificationContent);
     }
 
     /**
      * Validate notification response.
      *
-     * @param array<mixed> $response
-     * @param bool $isSchedulerNotification
-     * @return bool|string
+     * @param array<mixed> $notificationContent
+     * @return bool
      */
-    public function validateNotificationResponse(array $response, $isSchedulerNotification = false): bool | string
+    public function isValidNotification(array $notificationContent): bool
     {
         $resultCode =
-            $response[Constants::KEY_NOTIFICATION_PAYLOAD]
+            $notificationContent[Constants::KEY_NOTIFICATION_PAYLOAD]
                 [Constants::KEY_NOTIFICATION_RESULT]
                 [Constants::KEY_NOTIFICATION_CODE]
                 ?? null;
-        $transactionId = $this->getTransactionId($response);
-        $orderIncrementId = $this->getIncrementId($response);
-        if (!$isSchedulerNotification && (!$resultCode || !$transactionId || !$orderIncrementId)) {
+        $isSchedulerResponse = $this->isSchedulerResponse($notificationContent);
+        $transactionId = $this->getTransactionId($notificationContent);
+        $orderIncrementId = $this->getIncrementId($notificationContent);
+        $isRecurringOrder = $this->isRecurringOrderTransaction($notificationContent);
+        if (!$isSchedulerResponse &&
+            !$isRecurringOrder &&
+            (!$resultCode || !$transactionId || !$orderIncrementId)
+        ) {
             $this->logger->error('One of the required value is blank. Order Id :' .
             $orderIncrementId. ', Transaction Id :' .
             $transactionId. ', Result Code :' .
             $resultCode);
-            return IgniteNotificationConstants::KEY_NOTIFICATION_INVALID;
+            return false;
         }
         $responseStatus = $this->utilities->validateResponse($resultCode);
 
         if ($responseStatus === Constants::SUCCESS) {
             return true;
         } elseif ($responseStatus === Constants::PENDING) {
-            return IgniteNotificationConstants::KEY_NOTIFICATION_INVALID;
+            return false;
         } else {
             $order = $this->orderFactory->create()->loadByIncrementId($orderIncrementId);
             if ($order->getId()) {
@@ -240,11 +285,11 @@ class TransactionOrderUpdater extends IgniteTransactionOrderUpdaterModel
                     Constants::NOTIFICATION_SERVICE_CAPTURE,
                     Constants::SERVICE_AUTHORIZE
                 ];
-                $action = $this->getActionType($response);
+                $action = $this->notificationManager->getActionType($notificationContent);
                 if (in_array($orderState, $acceptableOrderStates) && in_array($action, $acceptablePaymentTypes)) {
                     $this->orderManagerInterface->cancelMagentoOrder(
                         (int)$order->getId(),
-                        $this->getTransactionId($response)
+                        $this->getTransactionId($notificationContent)
                     );
                 } else {
                     $this->logger->error('Webhook api result code error - Order not in the correct state - '.
@@ -255,62 +300,54 @@ class TransactionOrderUpdater extends IgniteTransactionOrderUpdaterModel
                 $this->logger->error('Webhook api result code error - Order Id not found
                 for the increment Id - '.$orderIncrementId);
             }
-            return IgniteNotificationConstants::KEY_NOTIFICATION_INVALID;
+            return false;
         }
     }
 
     /**
-     * If the webhook response belongs to schedule creation transaction
+     * Check if the api response is of scheduler API call
+     *
+     * @param array<mixed> $params
+     * @return bool
+     */
+    public function isSchedulerResponse(array $params): bool
+    {
+        return $this->notificationUtilities->isSchedulerResponse($params);
+    }
+
+    /**
+     * If the webhook response belongs to schedule transaction
      *
      * @param array<mixed> $paramsArray
      * @return bool
      */
-    public function isScheduleCreationTransaction(array $paramsArray): bool
+    public function isRecurringOrderTransaction(array $paramsArray): bool
     {
-        if ($this->scopeConfig->getValue(IgniteNotificationConstants::KEY_SUBSCRIPTION_ENABLED)
-            && isset($paramsArray['payload']['standingInstruction']['recurringType'])
+        if ($this->subscriptionConfig->isSubscriptionActive()
+            && $this->getRecurringParam($paramsArray)
         ) {
-            if ($paramsArray['payload']['standingInstruction']['recurringType'] ==
-                Constants::STANDING_INSTRUCTION_RECURRING_TYPE) {
-                return true;
-            }
+            return true;
         }
         return false;
     }
 
     /**
-     * Check if the Schedule order creation has been done
+     * Check recurring transaction
      *
      * @param array<mixed> $paramsArray
      * @return bool
-     * @throws LocalizedException
      */
-    public function validateScheduleOrderCreation(array $paramsArray): bool
+    public function getRecurringParam(array $paramsArray): bool
     {
-
-        $orderIncrementId = null;
-        if (isset($paramsArray['payload']['merchantTransactionId'])) {
-            $orderIncrementId = $paramsArray['payload']['merchantTransactionId'];
+        if (isset($paramsArray[Constants::KEY_NOTIFICATION_TYPE]) &&
+            $paramsArray[Constants::KEY_NOTIFICATION_TYPE] == Constants::KEY_NOTIFICATION_TYPE_PAYMENT &&
+            isset($paramsArray[Constants::KEY_NOTIFICATION_PAYLOAD][Constants::KEY_NOTIFICATION_SOURCE]) &&
+            $paramsArray[Constants::KEY_NOTIFICATION_PAYLOAD][Constants::KEY_NOTIFICATION_SOURCE]
+            == Constants::KEY_NOTIFICATION_SOURCE_SCHEDULER
+        ) {
+            return true;
         }
-        $order = $this->orderFactory->create()->loadByIncrementId($orderIncrementId);
-        $orderId = $order->getId();
-        if ($orderId) {
-            try {
-                $recurringOrder = $this->recurringOrderRepository->getByOrderId((int)$orderId);
-            } catch (LocalizedException $e) {
-                $this->logger->error(__($e->getMessage()));
-                return false;
-            }
-            if (!$recurringOrder->getRegistrationId()) {
-                //checking if registration ID is null. If null that would mean the response of schedule order was
-                // not received. we need to make the api call again from data we populated in ignite_subscription
-                // table using app/code/TryzensIgnite/Subscription/Plugin/OrderPlaceAfter.php
-                $recurringOrder->setRegistrationId($paramsArray['payload']['registrationId']);
-                $this->recurringOrderRepository->save($recurringOrder);
-                $this->createSubscriptionRequestManager->process($paramsArray);
-            }
-        }
-        return true;
+        return false;
     }
 
     /**
@@ -343,48 +380,65 @@ class TransactionOrderUpdater extends IgniteTransactionOrderUpdaterModel
     }
 
     /**
-     * Check if the api response is of scheduler API call
+     * If the webhook response belongs to schedule creation transaction
+     *
+     * @param array<mixed> $paramsArray
+     * @return bool
+     */
+    public function isScheduleCreationTransaction(array $paramsArray): bool
+    {
+        if ($this->subscriptionConfig->isSubscriptionActive()
+            && isset($paramsArray['payload']['standingInstruction']['recurringType'])
+        ) {
+            if ($paramsArray['payload']['standingInstruction']['recurringType'] ==
+                Constants::STANDING_INSTRUCTION_RECURRING_TYPE) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if the Schedule order creation has been done
+     *
+     * @param array<mixed> $paramsArray
+     * @return bool
+     * @throws LocalizedException
+     */
+    public function validateScheduleOrderCreation(array $paramsArray): bool
+    {
+        $orderIncrementId = null;
+        if (isset($paramsArray['payload']['merchantTransactionId'])) {
+            $orderIncrementId = $paramsArray['payload']['merchantTransactionId'];
+        }
+        $order = $this->orderFactory->create()->loadByIncrementId($orderIncrementId);
+        $orderId = $order->getId();
+        if ($orderId) {
+            try {
+                $recurringOrder = $this->recurringOrderRepository->getByOrderId((int)$orderId);
+            } catch (LocalizedException $e) {
+                $this->logger->error(__($e->getMessage()));
+                return false;
+            }
+            if (!$recurringOrder->getRegistrationId()) {
+                $recurringOrder->setRegistrationId($paramsArray['payload']['registrationId']);
+                $recurringOrder->setLastOrderId((int)$orderId);
+                $recurringOrder->setLastIncrementId($orderIncrementId);
+                $this->recurringOrderRepository->save($recurringOrder);
+                $this->createSubscriptionRequestManager->process($paramsArray['payload']);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Check if the api response is of Registration response type.
      *
      * @param array<mixed> $params
      * @return bool
      */
-    public function isSchedulerResponse(array $params): bool
+    public function isRegistrationResponse(array $params): bool
     {
-        return $this->notificationUtilities->isSchedulerResponse($params);
-    }
-
-    /**
-     * If the webhook response belongs to schedule transaction
-     *
-     * @param array<mixed> $paramsArray
-     * @return bool
-     */
-    public function isRecurringOrderTransaction(array $paramsArray): bool
-    {
-        if ($this->scopeConfig->getValue(IgniteConstants::KEY_SUBSCRIPTION_ENABLED)
-            && $this->getRecurringParam($paramsArray)
-        ) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Check recurring transaction
-     *
-     * @param array<mixed> $paramsArray
-     * @return bool
-     */
-    public function getRecurringParam(array $paramsArray): bool
-    {
-        if (isset($paramsArray[Constants::KEY_NOTIFICATION_TYPE]) &&
-            $paramsArray[Constants::KEY_NOTIFICATION_TYPE] == Constants::KEY_NOTIFICATION_TYPE_PAYMENT &&
-            isset($paramsArray[Constants::KEY_NOTIFICATION_PAYLOAD][Constants::KEY_NOTIFICATION_SOURCE]) &&
-            $paramsArray[Constants::KEY_NOTIFICATION_PAYLOAD][Constants::KEY_NOTIFICATION_SOURCE]
-            == Constants::KEY_NOTIFICATION_SOURCE_SCHEDULER
-        ) {
-            return true;
-        }
-        return false;
+        return $this->notificationUtilities->isRegistrationResponse($params);
     }
 }

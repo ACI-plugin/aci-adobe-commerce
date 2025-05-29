@@ -3,7 +3,7 @@ namespace Aci\Payment\Gateway\Request;
 
 use Aci\Payment\Helper\Constants;
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use TryzensIgnite\Common\Gateway\Config\Config;
+use TryzensIgnite\Base\Model\Utilities\Config as UtilityConfig;
 use Aci\Payment\Gateway\Config\AciGenericPaymentConfig;
 
 /**
@@ -12,9 +12,9 @@ use Aci\Payment\Gateway\Config\AciGenericPaymentConfig;
 class BaseRequestDataBuilder implements BuilderInterface
 {
     /**
-     * @var Config
+     * @var UtilityConfig
      */
-    private Config $config;
+    private UtilityConfig $config;
 
     /**
      * @var AciGenericPaymentConfig
@@ -24,11 +24,11 @@ class BaseRequestDataBuilder implements BuilderInterface
     /**
      * BaseRequestDataBuilder constructor.
      *
-     * @param Config $config
+     * @param UtilityConfig $config
      * @param AciGenericPaymentConfig $paymentConfig
      */
     public function __construct(
-        Config $config,
+        UtilityConfig $config,
         AciGenericPaymentConfig $paymentConfig
     ) {
         $this->config = $config;
@@ -46,7 +46,7 @@ class BaseRequestDataBuilder implements BuilderInterface
             throw new \InvalidArgumentException('Quote data object should be provided');
         }
         $requestData = [
-            Constants::KEY_LOCALE => $this->config->getConfig(Config::XML_PATH_DEFAULT_LOCALE),
+            Constants::KEY_LOCALE => $this->config->getConfig(AciGenericPaymentConfig::XML_PATH_DEFAULT_LOCALE),
         ];
         $testMode = $this->paymentConfig->getTestMode();
         if ($testMode) {

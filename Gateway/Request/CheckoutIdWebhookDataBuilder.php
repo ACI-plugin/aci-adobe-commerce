@@ -2,13 +2,12 @@
 
 namespace Aci\Payment\Gateway\Request;
 
-use TryzensIgnite\Common\Helper\Constants;
-use TryzensIgnite\Common\Gateway\Request\TransactionIDWebhookDataBuilder;
+use Aci\Payment\Helper\Constants;
 
 /**
  * Builds checkout ID for Get transaction request - webhook
  */
-class CheckoutIdWebhookDataBuilder extends TransactionIDWebhookDataBuilder
+class CheckoutIdWebhookDataBuilder extends TransactionIdDataBuilder
 {
     /**
      * Get Transaction ID from payment builder object
@@ -16,7 +15,7 @@ class CheckoutIdWebhookDataBuilder extends TransactionIDWebhookDataBuilder
      * @param array<mixed> $buildSubject
      * @return string
      */
-    public function getTransactionId(array $buildSubject): string
+    public function getRequestData(array $buildSubject): string
     {
         return $buildSubject[Constants::TRANSACTION_ID] ?? '';
     }

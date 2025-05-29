@@ -2,18 +2,18 @@
 
 namespace Aci\Payment\Controller\Payment;
 
-use Aci\Payment\Logger\AciApmLogger;
+use TryzensIgnite\Base\Logger\Logger;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\Result\RedirectFactory as ResultRedirectFactory;
-use Aci\Payment\Model\InitializeApmTransaction;
+use Aci\Payment\Model\InitPayment\InitializeApmTransaction;
 use Magento\Framework\Data\Form\FormKey\Validator;
-use TryzensIgnite\Common\Controller\Payment\InitPayment;
+use TryzensIgnite\Base\Controller\Payment\InitTransaction as IgniteInitTransaction;
 
 /**
  * Init payment transaction
  */
-class ApmInitPayment extends InitPayment
+class ApmInitPayment extends IgniteInitTransaction
 {
     /**
      * ApmInitPayment constructor.
@@ -22,7 +22,7 @@ class ApmInitPayment extends InitPayment
      * @param Context $context
      * @param InitializeApmTransaction $initTransactionModel
      * @param Validator $formKeyValidator
-     * @param AciApmLogger $logger
+     * @param Logger $logger
      */
     //phpcs:disable
     public function __construct(
@@ -31,7 +31,7 @@ class ApmInitPayment extends InitPayment
         Context $context,
         InitializeApmTransaction $initTransactionModel,
         Validator $formKeyValidator,
-        AciApmLogger $logger
+        Logger $logger
     ) {
         parent::__construct(
             $resultJsonFactory,

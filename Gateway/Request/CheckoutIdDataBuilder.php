@@ -8,7 +8,6 @@ use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Aci\Payment\Helper\Constants;
 use Magento\Sales\Model\Order\Payment;
-use TryzensIgnite\Common\Helper\Constants as IgniteConstants;
 
 /**
  * Class TransactionIDDataBuilder
@@ -51,10 +50,10 @@ class CheckoutIdDataBuilder implements BuilderInterface
                 $checkoutId =
                     (string)$paymentAdditionalInfo[Constants::GET_TRANSACTION_RESPONSE][Constants::KEY_CHECKOUT_ID];
             } elseif (isset($paymentAdditionalInfo[Constants::GET_TRANSACTION_RESPONSE]
-                [IgniteConstants::CHECKOUT_TRANSACTION_ID])) {
+                [Constants::CHECKOUT_TRANSACTION_ID])) {
                 $checkoutId =
                     (string)$paymentAdditionalInfo[Constants::GET_TRANSACTION_RESPONSE]
-                    [IgniteConstants::CHECKOUT_TRANSACTION_ID];
+                    [Constants::CHECKOUT_TRANSACTION_ID];
             } else {
                 throw new LocalizedException(
                     __('Invalid payment response :' . $this->utilities->serialize($paymentAdditionalInfo))

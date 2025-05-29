@@ -1,0 +1,27 @@
+
+@subscription-options-background__color: @color-white-smoke;
+@subscription-options-border__color: @color-gray80;
+
+.recurring-section {
+    background: @subscription-options-background__color;
+    padding: 15px;
+
+    .recurring-user-options {
+        .step-title {
+            border-bottom: 1px solid @subscription-options-border__color;
+        }
+        .step-title-sub {
+            padding: 15px 0;
+        }
+        .option-title {
+            font-weight: bold;
+            padding-bottom: 15px;
+        }
+        &-field {
+            padding: 10px 0;
+        }
+        &-content {
+            padding-bottom: 15px;
+        }
+    }
+}

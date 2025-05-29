@@ -2,11 +2,18 @@
 
 namespace Aci\Payment\Helper;
 
+use TryzensIgnite\Base\Helper\Constants as BaseConstants;
+
 /**
- * Helper class for requests constants
+ * Helper class for requests
  */
-class Constants
+class Constants extends BaseConstants
 {
+    public const API_METHOD_DELETE   = 'DELETE';
+    public const ACI_PAYMENT_HEADER_CONTENT_TYPE = 'application/x-www-form-urlencoded';
+    public const INITIALIZE_TRANSACTION     =   'initTransaction';
+    public const END_POINT_CANCEL_SUBSCRIPTION  =   '/scheduling/v1/schedules';
+
     //Command end point constants
     public const END_POINT_INIT_TRANSACTION     =   'v1/checkouts';
     public const END_POINT_PAYMENT_WIDGET       =   '/v1/paymentWidgets.js';
@@ -94,11 +101,11 @@ class Constants
     public const KEY_POSTAL_CODE_BA         = 'postcode';
     public const KEY_STATE_BA               = 'regionCode';
     public const KEY_STREET_BA              = 'street';
+    public const KEY_INTEGRITY              = 'integrity';
 
     // Request/Response values
     public const VALUE_PLATFORM_NAME          = 'Magento';
-    public const VALUE_MODULE_NAME            = 'Aci_Payment';
-    public const VALUE_SOURCE                 = 'PLG_MAGTO';
+    public const MODULE_NAME            = 'Aci_Payment';
     public const VALUE_SHIPPING_QUANTITY      = 1;
 
     //Request key prefix
@@ -112,12 +119,16 @@ class Constants
     public const KEY_LIVE_ENTITY_ID         = 'live_entity_id';
     public const KEY_TEST_WEBHOOK_ENCRYPTION_SECRET = 'test_webhook_encryption_secret';
     public const KEY_LIVE_WEBHOOK_ENCRYPTION_SECRET = 'live_webhook_encryption_secret';
+    public const PURCHASE_TOTALS = 'purchaseTotals';
+    public const CHARGE_AMOUNT = 'chargeAmount';
+    public const TAX_TOTAL = 'taxTotal';
     public const KEY_ACI_JAVASCRIPT         = 'aci_javascript';
     public const KEY_ACI_CSS                = 'aci_css';
     public const KEY_SUPPORTED_CARD_TYPES   = 'supported_card_types';
     public const KEY_CARD_TYPE_ICONS        = 'card_type_icons';
     public const KEY_TEST_MODE_CONFIG       = 'test_mode';
     public const KEY_ACTIVE                 = 'active';
+    public const KEY_DEBUG                  = 'debug';
 
     //Saved cards fields
     public const MASKED_CARD_NUMBER         =   'last4Digits';
@@ -145,7 +156,7 @@ class Constants
     public const KEY_SHIPPING_FIRSTNAME                     = 'firstname';
     public const KEY_SHIPPING_LASTNAME                      = 'lastname';
     public const KEY_SHIPPING_TELEPHONE                     = 'telephone';
-    public const PATH_TO_SUPPORTED_PAYMENT_METHODS          = 'payment/tryzensignite_subscription/apm_subscription';
+    public const PATH_TO_SUPPORTED_PAYMENT_METHODS          = 'payment/aci_subscription/apm_subscription';
 
     // Registration/Scheduler Request keys
     public const KEY_CREATE_REGISTRATION = 'createRegistration';
@@ -163,8 +174,18 @@ class Constants
     public const SCHEDULER_STANDING_INSTRUCTION_MODE = 'REPEATED';
     public const SCHEDULER_STANDING_INSTRUCTION_SOURCE = 'MIT';
     public const RESPONSE_TYPE_SCHEDULE = 'SCHEDULE';
+    public const RESPONSE_TYPE_REGISTRATION = 'REGISTRATION';
     public const KEY_NOTIFICATION_TYPE = 'type';
     public const KEY_NOTIFICATION_SOURCE = 'source';
     public const KEY_NOTIFICATION_TYPE_PAYMENT = 'PAYMENT';
     public const KEY_NOTIFICATION_SOURCE_SCHEDULER = 'SCHEDULER';
+    public const CHECKOUT_TRANSACTION_ID        =   'CheckoutTransactionId';
+    public const TRANSACTION_ID                 =   'transaction_id';
+    public const INVOICE_NUMBER                 =   'InvoiceNumber';
+    public const GET_TRANSACTION_REQUEST        =   'OriginalRequest';
+    public const TRANSACTION_TOTAL              =   'TransactionTotal';
+    public const GET_TRANSACTION_ID             =   'TransactionId';
+    public const GET_STATUS_TRANSACTION_TYPE    = 'getStatus';
+    public const KEY_PLUGIN_TYPE    = 'pluginType';
+    public const VALUE_PLUGIN_TYPE  = 'MAGTO';
 }

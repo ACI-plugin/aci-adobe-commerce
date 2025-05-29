@@ -3,11 +3,12 @@
 namespace Aci\Payment\Helper;
 
 use Magento\Framework\Serialize\Serializer\Json as Serializer;
+use TryzensIgnite\Base\Model\Utilities\DataFormatter as IgniteDataFormatter;
 
 /**
  * Class Utilities - Utility functions
  */
-class Utilities
+class Utilities extends IgniteDataFormatter
 {
     /**
      * @var Serializer
@@ -35,13 +36,15 @@ class Utilities
     ) {
         $this->serializer = $serializer;
     }
+
     /**
      * Format amount to 2 decimal points
      *
      * @param float|null $amount
+     * @param int $precision
      * @return string
      */
-    public function formatNumber(?float $amount): string
+    public function formatNumber(?float $amount, int $precision = 2): string
     {
         return $amount ? number_format($amount, 2, '.', '') : '0.00';
     }
@@ -55,19 +58,6 @@ class Utilities
     public function unSerialize(string $dataArray): mixed
     {
         return $this->serializer->unserialize($dataArray);
-    }
-
-    /**
-     * Filter null values from array
-     *
-     * @param array<mixed> $data
-     * @return array<mixed>
-     */
-    public function removeNullValues(array $data): array
-    {
-        return array_filter($data, function ($val) {
-            return $val !== null && $val !== '';
-        });
     }
 
     /**
